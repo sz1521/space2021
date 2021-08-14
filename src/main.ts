@@ -1,6 +1,6 @@
 import { init, Sprite, GameLoop } from "kontra";
 
-let { canvas } = init();
+const { canvas } = init();
 
 const resize = () => {
   canvas.width = window.innerWidth - 10;
@@ -10,7 +10,7 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
-let sprite = Sprite({
+const sprite = Sprite({
   x: 100,
   y: 80,
   color: "red",
@@ -19,7 +19,7 @@ let sprite = Sprite({
   dx: 2,
 });
 
-let loop = GameLoop({
+const loop = GameLoop({
   update: function () {
     sprite.update();
 

@@ -1,4 +1,5 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
+import eslint from "@rollup/plugin-eslint";
 import typescript from "@rollup/plugin-typescript";
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
@@ -13,6 +14,7 @@ export default {
   },
   plugins: [
     nodeResolve(),
+    eslint(),
     typescript(),
     !isLiveMode && terser(),
     isLiveMode && serve("dist"),
