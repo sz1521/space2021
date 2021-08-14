@@ -2,6 +2,9 @@ import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
+import { terser } from "rollup-plugin-terser";
+
+const isLiveMode = process.argv.indexOf("--live") !== -1;
 
 export default {
   input: "src/main.ts",
@@ -11,7 +14,8 @@ export default {
   plugins: [
     nodeResolve(),
     typescript(),
-    process.argv.indexOf("--live") !== -1 && serve("dist"),
-    process.argv.indexOf("--live") !== -1 && livereload("dist"),
+    !isLiveMode && terser(),
+    isLiveMode && serve("dist"),
+    isLiveMode && livereload("dist"),
   ],
 };
