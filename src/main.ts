@@ -1,13 +1,33 @@
-import { init, Sprite, GameLoop, TileEngine } from "kontra";
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Sami H, Tero J
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import { init, load, imageAssets, Sprite, GameLoop, TileEngine } from "kontra";
 
 const { canvas } = init();
 
-let tileEngine: TileEngine | null = null;
-
-const img = new Image();
-img.src = 'tiles.png';
-img.onload = function() {
-  tileEngine = TileEngine({
+const createTileMap = (): TileEngine => {
+  return TileEngine({
     tilewidth: 32,
     tileheight: 32,
 
@@ -16,7 +36,7 @@ img.onload = function() {
 
     tilesets: [{
       firstgid: 1,
-      image: img
+      image: imageAssets['tiles.png'],
     }],
 
     layers: [{
@@ -55,20 +75,24 @@ const sprite = Sprite({
   dx: 2,
 });
 
-const loop = GameLoop({
-  update: function () {
-    sprite.update();
+load('tiles.png').then(() => {
+  const tileEngine = createTileMap();
 
-    if (sprite.x > canvas.width) {
-      sprite.x = -sprite.width;
-    }
-  },
-  render: function () {
-    if (tileEngine) {
+  const loop = GameLoop({
+    update: function () {
+      sprite.update();
+
+      if (sprite.x > canvas.width) {
+        sprite.x = -sprite.width;
+      }
+    },
+    render: function () {
       tileEngine.render();
-    }
-    sprite.render();
-  },
-});
+      sprite.render();
+    },
+  });
 
-loop.start();
+  loop.start();
+}).catch((error) => {
+  console.warn('Error loading tileset:', error);
+});
