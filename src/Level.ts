@@ -22,25 +22,35 @@
  * SOFTWARE.
  */
 
-import { imageAssets, TileEngine } from "kontra";
+import { GameObject, imageAssets, Sprite, TileEngine } from "kontra";
 
 const map =
-  [ 2,  2,  2,  2,  1,  2,  2,  3,  2,  3,  1,  3,  2,  3,
-    1,  2,  2,  2,  2,  3,  2,  2,  2,  2,  1,  3,  1,  2,
-    2,  1,  1,  3,  3,  2,  2,  2,  2,  1,  3,  2,  3,  3,
-    1,  3,  1,  1,  2,  3,  3,  2,  3,  2,  1,  1,  1,  1,
-    2,  2,  3,  1,  2,  2,  2,  1,  3,  3,  2,  3,  3,  2,
-    2,  2,  3,  2,  3,  3,  3,  3,  3,  3,  3,  2,  1,  3,
-    2,  2,  1,  2,  2,  2,  1,  3,  1,  2,  3,  2,  3,  1,
-    3,  2,  2,  2,  2,  2,  1,  2,  2,  1,  2,  2,  1,  2,
-    3,  2,  2,  2,  2,  2,  3,  3,  1,  1,  3,  2,  3,  3,
-    2,  2,  3,  1,  1,  2,  2,  2,  1,  3,  2,  3,  3,  2,
-    2,  2,  2,  2,  3,  2,  2,  2,  2,  1,  2,  3,  1,  1,
-    2,  3,  3,  2,  2,  2,  1,  1,  2,  1,  1,  3,  2,  2,
+  [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
+    3,  2,  2,  2,  2,  3,  2,  2,  2,  2,  2,  3,  4,  2,
+    2,  3,  2,  3,  3,  2,  2,  2,  2,  4,  3,  2,  3,  3,
+    3,  3,  4,  2,  2,  3,  3,  2,  3,  2,  4,  3,  3,  2,
+    2,  2,  3,  3,  2,  2,  2,  2,  3,  3,  2,  3,  3,  2,
+    2,  2,  3,  2,  3,  3,  3,  3,  3,  3,  3,  2,  2,  3,
+    2,  2,  3,  2,  2,  2,  3,  3,  3,  2,  3,  2,  3,  3,
+    3,  2,  2,  2,  2,  2,  3,  2,  2,  3,  2,  1,  1,  1,
+    3,  2,  2,  2,  2,  2,  3,  3,  3,  2,  3,  2,  3,  3,
+    2,  2,  3,  3,  4,  2,  2,  2,  4,  3,  2,  3,  3,  2,
+    2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  1,  1,
+    2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
   ];
+
+const createPlant = (x: number, y: number): Sprite => {
+  return Sprite({
+    x, y,
+    color: 'rgb(0, 255, 0)',
+    width: 16,
+    height: 32,
+  });
+}
 
 export class Level {
   private tileEngine: TileEngine;
+  private gameObjects: GameObject[] = [];
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -60,9 +70,15 @@ export class Level {
         data: map,
       }]
     });
+
+    const plant = createPlant(72, 64);
+    this.gameObjects.push(plant);
   }
 
-  render() {
+  render(): void {
     this.tileEngine.render();
+    for (const o of this.gameObjects) {
+      o.render();
+    }
   }
 }

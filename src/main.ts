@@ -23,7 +23,7 @@
  */
 
 import { Level } from "./Level";
-import { init, load, Sprite, GameLoop } from "kontra";
+import { init, load, GameLoop } from "kontra";
 
 const { canvas } = init();
 
@@ -35,30 +35,15 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
-const sprite = Sprite({
-  x: 100,
-  y: 80,
-  color: "red",
-  width: 20,
-  height: 40,
-  dx: 2,
-});
-
 load('tiles.png').then(() => {
   const level = new Level();
 
   const loop = GameLoop({
-    update: function () {
-      sprite.update();
-
-      if (sprite.x > canvas.width) {
-        sprite.x = -sprite.width;
-      }
+    update: (): void => {
     },
 
-    render: function () {
+    render: (): void => {
       level.render();
-      sprite.render();
     },
   });
 
