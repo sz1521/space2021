@@ -47,6 +47,10 @@ load('tiles.png').then(() => {
     },
   });
 
+  addEventListener('click', (e) => {
+    level.onClick(e.x, e.y);
+  });
+
   loop.start();
 }).catch((error) => {
   console.warn('Error loading assets:', error);

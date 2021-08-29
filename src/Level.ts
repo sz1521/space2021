@@ -43,7 +43,7 @@ const createPlant = (x: number, y: number): Sprite => {
   return Sprite({
     x, y,
     color: 'rgb(0, 255, 0)',
-    width: 16,
+    width: 32,
     height: 32,
   });
 }
@@ -71,7 +71,21 @@ export class Level {
       }]
     });
 
-    const plant = createPlant(72, 64);
+    const plant = createPlant(64, 64);
+    this.gameObjects.push(plant);
+  }
+
+  onClick(x: number, y: number): void {
+    const tileX = Math.floor(x / this.tileEngine.tilewidth);
+    const tileY = Math.floor(y / this.tileEngine.tileheight);
+
+    if (this.tileEngine.width <= tileX || this.tileEngine.height <= tileY) {
+      return;
+    }
+
+    const xx = tileX * this.tileEngine.tilewidth;
+    const yy = tileY * this.tileEngine.tileheight;
+    const plant = createPlant(xx, yy);
     this.gameObjects.push(plant);
   }
 
