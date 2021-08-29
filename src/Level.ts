@@ -22,7 +22,8 @@
  * SOFTWARE.
  */
 
-import { GameObject, imageAssets, Sprite, TileEngine } from "kontra";
+import { Plant } from "./Plant";
+import { GameObject, imageAssets, TileEngine } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -38,15 +39,6 @@ const map =
     2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  1,  1,
     2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
   ];
-
-const createPlant = (x: number, y: number): Sprite => {
-  return Sprite({
-    x, y,
-    color: 'rgb(0, 255, 0)',
-    width: 32,
-    height: 32,
-  });
-}
 
 export class Level {
   private tileEngine: TileEngine;
@@ -71,8 +63,8 @@ export class Level {
       }]
     });
 
-    const plant = createPlant(64, 64);
-    this.gameObjects.push(plant);
+    const flower = new Plant(64, 64);
+    this.gameObjects.push(flower);
   }
 
   onClick(x: number, y: number): void {
@@ -85,8 +77,14 @@ export class Level {
 
     const xx = tileX * this.tileEngine.tilewidth;
     const yy = tileY * this.tileEngine.tileheight;
-    const plant = createPlant(xx, yy);
+    const plant = new Plant(xx, yy);
     this.gameObjects.push(plant);
+  }
+
+  update(): void {
+    for (const o of this.gameObjects) {
+      o.update();
+    }
   }
 
   render(): void {
