@@ -37,7 +37,7 @@ export class Plant extends Sprite.class {
         animations: {
           idle: {
             frames: [0, 1, 2],
-            frameRate: 2,
+            frameRate: 1,
           }
         }
       });

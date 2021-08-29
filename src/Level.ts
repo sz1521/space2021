@@ -47,7 +47,7 @@ export class Level {
   constructor() {
     this.tileEngine = TileEngine({
       tilewidth: 32,
-      tileheight: 32,
+      tileheight: 16,
 
       width: 14,
       height: 12,
@@ -76,7 +76,7 @@ export class Level {
     }
 
     const xx = tileX * this.tileEngine.tilewidth;
-    const yy = tileY * this.tileEngine.tileheight;
+    const yy = tileY * this.tileEngine.tileheight - 16;
     const plant = new Plant(xx, yy);
     this.gameObjects.push(plant);
   }
@@ -88,6 +88,9 @@ export class Level {
   }
 
   render(): void {
+    // Sort objects for perspective effect, back-to-front.
+    this.gameObjects.sort((a, b) => a.y - b.y);
+
     this.tileEngine.render();
     for (const o of this.gameObjects) {
       o.render();
