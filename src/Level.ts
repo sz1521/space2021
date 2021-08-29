@@ -23,7 +23,7 @@
  */
 
 import { Plant } from "./Plant";
-import { GameObject, imageAssets, TileEngine } from "kontra";
+import { GameObject, imageAssets, Sprite, TileEngine } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -39,6 +39,13 @@ const map =
     2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  1,  1,
     2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
   ];
+
+const createCone = (x: number, y: number) => {
+  return Sprite({
+    x, y,
+    image: imageAssets['cone.png'],
+  });
+}
 
 export class Level {
   private tileEngine: TileEngine;
@@ -65,6 +72,16 @@ export class Level {
 
     const flower = new Plant(64, 64);
     this.gameObjects.push(flower);
+
+    for (let i = 0; i < 5; i++) {
+      const gridX = Math.floor(Math.random() * this.tileEngine.width);
+      const gridY = Math.floor(Math.random() * this.tileEngine.height);
+      const x = gridX * this.tileEngine.tilewidth;
+      const y = gridY * this.tileEngine.tileheight - 16;
+
+      const cone = createCone(x, y);
+      this.gameObjects.push(cone);
+    }
   }
 
   onClick(x: number, y: number): void {
