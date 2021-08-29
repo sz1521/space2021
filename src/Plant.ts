@@ -22,38 +22,38 @@
  * SOFTWARE.
  */
 
-import { Level } from "./Level";
-import { init, load, GameLoop } from "kontra";
+import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
 
-const { canvas } = init();
+export class Plant extends Sprite.class {
+  private static spriteSheet: SpriteSheet | undefined;
 
-const resize = () => {
-  canvas.width = window.innerWidth - 10;
-  canvas.height = window.innerHeight - 10;
-};
+  private static getAnimations(): {[name: string] : Animation} {
+    if (!Plant.spriteSheet) {
+      // Assents should be loaded by the time of creating objects.
+      Plant.spriteSheet = SpriteSheet({
+        image: imageAssets['blue_flower.png'],
+        frameWidth: 32,
+        frameHeight: 32,
+        animations: {
+          idle: {
+            frames: [0, 1, 2],
+            frameRate: 1,
+          }
+        }
+      });
+    }
 
-window.addEventListener("resize", resize, false);
-resize();
+    return Plant.spriteSheet.animations;
+  }
 
-load('tiles.png', 'blue_flower.png').then(() => {
-  const level = new Level();
-
-  const loop = GameLoop({
-    update: (): void => {
-      level.update();
-    },
-
-    render: (): void => {
-      level.render();
-    },
-  });
-
-  addEventListener('click', (e) => {
-    level.onClick(e.x, e.y);
-  });
-
-  loop.start();
-}).catch((error) => {
-  // eslint-disable-next-line no-console
-  console.warn('Error loading assets:', error);
-});
+  constructor(x: number, y: number) {
+    super({
+      x,
+      y,
+      width: 32,
+      height: 32,
+      animations: Plant.getAnimations()
+    });
+    this.playAnimation('idle');
+  }
+}

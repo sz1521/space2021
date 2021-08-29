@@ -22,7 +22,8 @@
  * SOFTWARE.
  */
 
-import { GameObject, imageAssets, Sprite, TileEngine } from "kontra";
+import { Plant } from "./Plant";
+import { GameObject, imageAssets, TileEngine } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -39,15 +40,6 @@ const map =
     2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
   ];
 
-const createPlant = (x: number, y: number): Sprite => {
-  return Sprite({
-    x, y,
-    color: 'rgb(0, 255, 0)',
-    width: 16,
-    height: 32,
-  });
-}
-
 export class Level {
   private tileEngine: TileEngine;
   private gameObjects: GameObject[] = [];
@@ -55,7 +47,7 @@ export class Level {
   constructor() {
     this.tileEngine = TileEngine({
       tilewidth: 32,
-      tileheight: 32,
+      tileheight: 16,
 
       width: 14,
       height: 12,
@@ -71,11 +63,34 @@ export class Level {
       }]
     });
 
-    const plant = createPlant(72, 64);
+    const flower = new Plant(64, 64);
+    this.gameObjects.push(flower);
+  }
+
+  onClick(x: number, y: number): void {
+    const tileX = Math.floor(x / this.tileEngine.tilewidth);
+    const tileY = Math.floor(y / this.tileEngine.tileheight);
+
+    if (this.tileEngine.width <= tileX || this.tileEngine.height <= tileY) {
+      return;
+    }
+
+    const xx = tileX * this.tileEngine.tilewidth;
+    const yy = tileY * this.tileEngine.tileheight - 16;
+    const plant = new Plant(xx, yy);
     this.gameObjects.push(plant);
   }
 
+  update(): void {
+    for (const o of this.gameObjects) {
+      o.update();
+    }
+  }
+
   render(): void {
+    // Sort objects for perspective effect, back-to-front.
+    this.gameObjects.sort((a, b) => a.y - b.y);
+
     this.tileEngine.render();
     for (const o of this.gameObjects) {
       o.render();
