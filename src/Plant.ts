@@ -46,10 +46,8 @@ export class Plant extends Sprite.class {
     return Plant.spriteSheet.animations;
   }
 
-  constructor(x: number, y: number) {
+  constructor() {
     super({
-      x,
-      y,
       width: 32,
       height: 32,
       animations: Plant.getAnimations()

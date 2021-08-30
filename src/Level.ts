@@ -40,9 +40,13 @@ const map =
     2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
   ];
 
-const createCone = (x: number, y: number) => {
+interface GridPosition {
+  xSquare: number;
+  ySquare: number;
+}
+
+const createCone = () => {
   return Sprite({
-    x, y,
     image: imageAssets['cone.png'],
   });
 }
@@ -70,32 +74,24 @@ export class Level {
       }]
     });
 
-    const flower = new Plant(64, 64);
+    const flower = new Plant();
+    flower.x = 64;
+    flower.y = 64;
     this.gameObjects.push(flower);
 
     for (let i = 0; i < 5; i++) {
-      const gridX = Math.floor(Math.random() * this.tileEngine.width);
-      const gridY = Math.floor(Math.random() * this.tileEngine.height);
-      const x = gridX * this.tileEngine.tilewidth;
-      const y = gridY * this.tileEngine.tileheight - 16;
-
-      const cone = createCone(x, y);
-      this.gameObjects.push(cone);
+      this.addObject(createCone(), this.getRandomPosition());
     }
   }
 
   onClick(x: number, y: number): void {
-    const tileX = Math.floor(x / this.tileEngine.tilewidth);
-    const tileY = Math.floor(y / this.tileEngine.tileheight);
+    const position = this.toGridPosition(x, y);
 
-    if (this.tileEngine.width <= tileX || this.tileEngine.height <= tileY) {
+    if (this.tileEngine.width <= position.xSquare || this.tileEngine.height <= position.ySquare) {
       return;
     }
 
-    const xx = tileX * this.tileEngine.tilewidth;
-    const yy = tileY * this.tileEngine.tileheight - 16;
-    const plant = new Plant(xx, yy);
-    this.gameObjects.push(plant);
+    this.addObject(new Plant(), position);
   }
 
   update(): void {
@@ -112,5 +108,25 @@ export class Level {
     for (const o of this.gameObjects) {
       o.render();
     }
+  }
+
+  private toGridPosition(x: number, y: number): GridPosition {
+    return {
+      xSquare: Math.floor(x / this.tileEngine.tilewidth),
+      ySquare: Math.floor(y / this.tileEngine.tileheight),
+    };
+  }
+
+  private addObject(o: GameObject, position: GridPosition): void {
+    o.x = position.xSquare * this.tileEngine.tilewidth;
+    o.y = position.ySquare * this.tileEngine.tileheight - 16;
+    this.gameObjects.push(o);
+  }
+
+  private getRandomPosition(): GridPosition {
+    return {
+      xSquare: Math.floor(Math.random() * this.tileEngine.width),
+      ySquare: Math.floor(Math.random() * this.tileEngine.height),
+    };
   }
 }
