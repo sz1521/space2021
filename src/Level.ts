@@ -23,7 +23,8 @@
  */
 
 import { Plant } from "./Plant";
-import { GameObject, imageAssets, Sprite, TileEngine } from "kontra";
+import { Cone } from "./Cone";
+import { GameObject, imageAssets, TileEngine } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -43,12 +44,6 @@ const map =
 interface GridPosition {
   xSquare: number;
   ySquare: number;
-}
-
-const createCone = () => {
-  return Sprite({
-    image: imageAssets['cone.png'],
-  });
 }
 
 export class Level {
@@ -80,7 +75,7 @@ export class Level {
     this.gameObjects.push(flower);
 
     for (let i = 0; i < 5; i++) {
-      this.addObject(createCone(), this.getRandomPosition());
+      this.addObject(new Cone(), this.getRandomPosition());
     }
   }
 
