@@ -74,7 +74,7 @@ export class Level {
       }]
     });
 
-    const flower = new Plant();
+    const flower = new Plant('blue_flower');
     flower.x = 64;
     flower.y = 64;
     this.gameObjects.push(flower);
@@ -91,7 +91,7 @@ export class Level {
       return;
     }
 
-    this.addObject(new Plant(), position);
+    this.addObject(new Plant('vine'), position);
   }
 
   update(): void {

@@ -35,7 +35,7 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
-load('tiles.png', 'blue_flower.png', 'cone.png').then(() => {
+load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
   const level = new Level();
 
   const loop = GameLoop({
