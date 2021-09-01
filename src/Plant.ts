@@ -26,6 +26,10 @@ import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
 
 export type Species = 'blue_flower' | 'vine';
 
+type State =
+  { type: 'idle' } |
+  { type: 'grabbing', startTime: number };
+
 const spriteSheetConstructors: { [S in Species]: () => SpriteSheet } = {
   'blue_flower': () => SpriteSheet({
     image: imageAssets['blue_flower'],
@@ -66,6 +70,7 @@ const getAnimations = (species: Species): {[name: string] : Animation} => {
 export class Plant extends Sprite.class {
 
   species: Species;
+  state: State = { type: 'idle' };
 
   constructor(species: Species) {
     super({
@@ -73,5 +78,21 @@ export class Plant extends Sprite.class {
     });
     this.species = species;
     this.playAnimation('idle');
+  }
+
+  update(): void {
+    if (this.state.type === 'grabbing' && performance.now() - this.state.startTime > 3000) {
+      this.state = { type: 'idle' };
+    }
+  }
+
+  canGrab(): boolean {
+    return this.species === 'vine' && this.state.type !== 'grabbing';
+  }
+
+  startGrabbing(): void {
+    if (this.state.type !== 'grabbing') {
+      this.state = { type: 'grabbing', startTime: performance.now() };
+    }
   }
 }

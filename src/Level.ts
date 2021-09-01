@@ -102,9 +102,12 @@ export class Level {
   update(): void {
     for (const o of this.gameObjects) {
       o.update();
-      if (o instanceof Plant && o.species === 'vine') {
+      if (o instanceof Plant && o.canGrab()) {
         const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
-        cone?.grab();
+        if (cone) {
+          o.startGrabbing();
+          cone.grab();
+        }
       }
     }
 
