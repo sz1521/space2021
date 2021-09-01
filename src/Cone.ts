@@ -22,38 +22,50 @@
  * SOFTWARE.
  */
 
-import { Level } from "./Level";
-import { init, load, GameLoop } from "kontra";
+import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
 
-const { canvas } = init();
+const FRAMES_PER_SECOND = 60;
 
-const resize = () => {
-  canvas.width = window.innerWidth - 10;
-  canvas.height = window.innerHeight - 10;
-};
+let spriteSheet: SpriteSheet | undefined;
 
-window.addEventListener("resize", resize, false);
-resize();
+const getAnimations = (): {[name: string] : Animation} => {
+  if (! spriteSheet) {
+    spriteSheet = SpriteSheet({
+      image: imageAssets['cone'],
+      frameWidth: 32,
+      frameHeight: 32,
+      animations: {
+        idle: {
+          frames: [0],
+        },
+        grabbed: {
+          frames: [1, 2],
+          loop: false,
+          frameRate: 1,
+        },
+      },
+    });
+  }
 
-load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
-  const level = new Level();
+  return spriteSheet.animations;
+}
 
-  const loop = GameLoop({
-    update: (): void => {
-      level.update();
-    },
+export type ConeState = 'idle' | 'grabbed';
 
-    render: (): void => {
-      level.render();
-    },
-  });
+export class Cone extends Sprite.class {
+  state: ConeState = 'idle';
 
-  addEventListener('click', (e) => {
-    level.onClick(e.x, e.y);
-  });
+  constructor() {
+    super({
+      animations: getAnimations(),
+    });
+  }
 
-  loop.start();
-}).catch((error) => {
-  // eslint-disable-next-line no-console
-  console.warn('Error loading assets:', error);
-});
+  grab(): void {
+    if (this.state !== 'grabbed') {
+      this.state = 'grabbed';
+      this.playAnimation('grabbed');
+      this.ttl = 2 * FRAMES_PER_SECOND;
+    }
+  }
+}

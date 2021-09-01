@@ -24,36 +24,75 @@
 
 import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
 
-export class Plant extends Sprite.class {
-  private static spriteSheet: SpriteSheet | undefined;
+export type Species = 'blue_flower' | 'vine';
 
-  private static getAnimations(): {[name: string] : Animation} {
-    if (!Plant.spriteSheet) {
-      // Assents should be loaded by the time of creating objects.
-      Plant.spriteSheet = SpriteSheet({
-        image: imageAssets['blue_flower.png'],
-        frameWidth: 32,
-        frameHeight: 32,
-        animations: {
-          idle: {
-            frames: [0, 1, 2],
-            frameRate: 1,
-          }
-        }
-      });
-    }
+type State =
+  { type: 'idle' } |
+  { type: 'grabbing', startTime: number };
 
-    return Plant.spriteSheet.animations;
+const spriteSheetConstructors: { [S in Species]: () => SpriteSheet } = {
+  'blue_flower': () => SpriteSheet({
+    image: imageAssets['blue_flower'],
+    frameWidth: 32,
+    frameHeight: 32,
+    animations: {
+      idle: {
+        frames: [0, 1, 2],
+        frameRate: 1,
+      }
+    },
+  }),
+  'vine': () => SpriteSheet({
+    image: imageAssets['vine'],
+    frameWidth: 32,
+    frameHeight: 32,
+    animations: {
+      idle: {
+        frames: [0, 1],
+        frameRate: 1,
+      }
+    },
+  }),
+};
+
+const spriteSheets: { [S in Species]?: SpriteSheet } = {};
+
+const getAnimations = (species: Species): {[name: string] : Animation} => {
+  if (!spriteSheets[species]) {
+    // Assents should be loaded by the time of creating objects.
+    spriteSheets[species] = spriteSheetConstructors[species]();
   }
 
-  constructor(x: number, y: number) {
+  // Strange type error here
+  return (spriteSheets as any)[species].animations;
+}
+
+export class Plant extends Sprite.class {
+
+  species: Species;
+  state: State = { type: 'idle' };
+
+  constructor(species: Species) {
     super({
-      x,
-      y,
-      width: 32,
-      height: 32,
-      animations: Plant.getAnimations()
+      animations: getAnimations(species),
     });
+    this.species = species;
     this.playAnimation('idle');
+  }
+
+  update(): void {
+    if (this.state.type === 'grabbing' && performance.now() - this.state.startTime > 3000) {
+      this.state = { type: 'idle' };
+    }
+  }
+
+  canGrab(): boolean {
+    return this.species === 'vine' && this.state.type !== 'grabbing';
+  }
+
+  startGrabbing(): void {
+    if (this.state.type !== 'grabbing') {
+      this.state = { type: 'grabbing', startTime: performance.now() };
+    }
   }
 }
