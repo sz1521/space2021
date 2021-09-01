@@ -24,7 +24,7 @@
 
 import { Plant } from "./Plant";
 import { Cone } from "./Cone";
-import { GameObject, imageAssets, TileEngine } from "kontra";
+import { collides, GameObject, imageAssets, TileEngine, Vector } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -41,9 +41,19 @@ const map =
     2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
   ];
 
+const TILE_WIDTH = 32;
+const TILE_HEIGHT = 16;
+
 interface GridPosition {
   xSquare: number;
   ySquare: number;
+}
+
+interface SquareBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export class Level {
@@ -52,8 +62,8 @@ export class Level {
 
   constructor() {
     this.tileEngine = TileEngine({
-      tilewidth: 32,
-      tileheight: 16,
+      tilewidth: TILE_WIDTH,
+      tileheight: TILE_HEIGHT,
 
       width: 14,
       height: 12,
@@ -92,7 +102,13 @@ export class Level {
   update(): void {
     for (const o of this.gameObjects) {
       o.update();
+      if (o instanceof Plant && o.species === 'vine') {
+        const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
+        cone?.grab();
+      }
     }
+
+    this.gameObjects = this.gameObjects.filter(o => o.isAlive());
   }
 
   render(): void {
@@ -105,16 +121,42 @@ export class Level {
     }
   }
 
+  private findAdjascentObject(o: GameObject, selector: (other: GameObject) => boolean): GameObject | undefined {
+    const nearbyArea = {
+      x: o.x - TILE_WIDTH,
+      y: o.y + (o.height - TILE_HEIGHT) - TILE_HEIGHT,
+      width: TILE_WIDTH * 3,
+      height: TILE_HEIGHT * 3,
+    };
+
+    for (const other of this.gameObjects) {
+      if (selector(other) && collides(this.getSquareBounds(other), nearbyArea)) {
+        return other;
+      }
+    }
+
+    return undefined;
+  }
+
+  private getSquareBounds(o: GameObject): SquareBounds {
+    return {
+      x: o.x,
+      y: o.y + (o.height - TILE_HEIGHT),
+      width: TILE_WIDTH,
+      height: TILE_HEIGHT,
+    };
+  }
+
   private toGridPosition(x: number, y: number): GridPosition {
     return {
-      xSquare: Math.floor(x / this.tileEngine.tilewidth),
-      ySquare: Math.floor(y / this.tileEngine.tileheight),
+      xSquare: Math.floor(x / TILE_WIDTH),
+      ySquare: Math.floor(y / TILE_HEIGHT),
     };
   }
 
   private addObject(o: GameObject, position: GridPosition): void {
-    o.x = position.xSquare * this.tileEngine.tilewidth;
-    o.y = position.ySquare * this.tileEngine.tileheight - 16;
+    o.x = position.xSquare * TILE_WIDTH;
+    o.y = position.ySquare * TILE_HEIGHT - (o.height - TILE_HEIGHT);
     this.gameObjects.push(o);
   }
 

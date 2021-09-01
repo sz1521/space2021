@@ -24,6 +24,8 @@
 
 import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
 
+const FRAMES_PER_SECOND = 60;
+
 let spriteSheet: SpriteSheet | undefined;
 
 const getAnimations = (): {[name: string] : Animation} => {
@@ -48,10 +50,22 @@ const getAnimations = (): {[name: string] : Animation} => {
   return spriteSheet.animations;
 }
 
+export type ConeState = 'idle' | 'grabbed';
+
 export class Cone extends Sprite.class {
+  state: ConeState = 'idle';
+
   constructor() {
     super({
       animations: getAnimations(),
     });
+  }
+
+  grab(): void {
+    if (this.state !== 'grabbed') {
+      this.state = 'grabbed';
+      this.playAnimation('grabbed');
+      this.ttl = 2 * FRAMES_PER_SECOND;
+    }
   }
 }
