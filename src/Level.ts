@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { Plant } from "./Plant";
+import { Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
 import { collides, GameObject, imageAssets, TileEngine } from "kontra";
 
@@ -49,16 +49,25 @@ interface GridPosition {
   ySquare: number;
 }
 
-interface SquareBounds {
+export interface SquareBounds {
   x: number;
   y: number;
   width: number;
   height: number;
 }
 
+export const isInside = (point: { x: number; y: number }, bounds: SquareBounds): boolean => {
+  return bounds.x <= point.x &&
+    bounds.y <= point.y &&
+    point.x < bounds.x + bounds.width &&
+    point.y < bounds.y + bounds.height;
+};
+
 export class Level {
   private tileEngine: TileEngine;
   private gameObjects: GameObject[] = [];
+
+  selectedSpecies: Species = 'blue_flower';
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -90,13 +99,10 @@ export class Level {
   }
 
   onClick(x: number, y: number): void {
-    const position = this.toGridPosition(x, y);
-
-    if (this.tileEngine.width <= position.xSquare || this.tileEngine.height <= position.ySquare) {
-      return;
+    if (0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight) {
+      const position = this.toGridPosition(x, y);
+      this.addObject(new Plant(this.selectedSpecies), position);
     }
-
-    this.addObject(new Plant('vine'), position);
   }
 
   update(): void {

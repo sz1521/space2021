@@ -22,31 +22,96 @@
  * SOFTWARE.
  */
 
-import { GameLoop } from "kontra";
-import { Level } from "./Level";
+import { GameLoop, getContext } from "kontra";
+import { isInside, Level, SquareBounds } from "./Level";
+import { Species } from "./Plant";
+
+const LEVEL_X = 0;
+const LEVEL_Y = 80;
+
+interface Button {
+  text: string;
+  species: Species;
+  bounds: SquareBounds;
+}
 
 export class Game {
   private level: Level;
+
+  private buttons: Button[] = [
+    {
+      text: 'F',
+      species: 'blue_flower',
+      bounds: {
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 50,
+      }
+    },
+    {
+      text: 'V',
+      species: 'vine',
+      bounds: {
+        x: 55,
+        y: 0,
+        width: 50,
+        height: 50,
+      }
+    }
+  ];
 
   constructor() {
     this.level = new Level();
 
     addEventListener('click', (e) => {
-      this.level.onClick(e.x, e.y);
+      for (const button of this.buttons) {
+        if (isInside(e, button.bounds)) {
+          this.level.selectedSpecies = button.species;
+          return;
+        }
+      }
+
+      this.level.onClick(e.x - LEVEL_X, e.y - LEVEL_Y);
     });
   }
 
   start() {
+    const context = getContext();
+
     const loop = GameLoop({
       update: (): void => {
         this.level.update();
       },
 
       render: (): void => {
+        context.save();
+        context.translate(LEVEL_X, LEVEL_Y);
+
         this.level.render();
+
+        context.restore();
+
+        this.renderUi(context);
       },
     });
 
     loop.start()
+  }
+
+  private renderUi(context: CanvasRenderingContext2D) {
+    context.save();
+
+    for (const button of this.buttons) {
+      const bounds = button.bounds;
+      context.fillStyle = button.species === this.level.selectedSpecies ? 'blue' : 'gray';
+      context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+
+      context.fillStyle = 'white';
+      context.font = '22px Sans-serif';
+      context.fillText(button.text, bounds.x + 17, bounds.y + 30);
+    }
+
+    context.restore();
   }
 }
