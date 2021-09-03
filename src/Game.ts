@@ -22,23 +22,31 @@
  * SOFTWARE.
  */
 
-import { init, load } from "kontra";
-import { Game } from "./Game";
+import { GameLoop } from "kontra";
+import { Level } from "./Level";
 
-const { canvas } = init();
+export class Game {
+  private level: Level;
 
-const resize = () => {
-  canvas.width = window.innerWidth - 10;
-  canvas.height = window.innerHeight - 10;
-};
+  constructor() {
+    this.level = new Level();
 
-window.addEventListener("resize", resize, false);
-resize();
+    addEventListener('click', (e) => {
+      this.level.onClick(e.x, e.y);
+    });
+  }
 
-load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
-  const game = new Game();
-  game.start();
-}).catch((error) => {
-  // eslint-disable-next-line no-console
-  console.warn('Error loading assets:', error);
-});
+  start() {
+    const loop = GameLoop({
+      update: (): void => {
+        this.level.update();
+      },
+
+      render: (): void => {
+        this.level.render();
+      },
+    });
+
+    loop.start()
+  }
+}

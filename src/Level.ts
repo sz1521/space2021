@@ -24,7 +24,7 @@
 
 import { Plant } from "./Plant";
 import { Cone } from "./Cone";
-import { collides, GameObject, imageAssets, TileEngine, Vector } from "kontra";
+import { collides, GameObject, imageAssets, TileEngine } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
