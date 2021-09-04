@@ -104,7 +104,8 @@ export class Level {
   onClick(x: number, y: number): void {
     if (0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight) {
       const position = this.toGridPosition(x, y);
-      if (this.isFreeOf(position, anyObject)) {
+      const isPaved = this.getTile(position) === 1;
+      if (!isPaved && this.isFreeOf(position, anyObject)) {
         this.addObject(new Plant(this.selectedSpecies), position);
       }
     }
@@ -142,11 +143,18 @@ export class Level {
       const objectAtTile = this.findObject(pos);
 
       if (objectAtTile == null || objectAtTile instanceof Plant) {
-        if (objectAtTile instanceof Plant) {
-          objectAtTile.ttl = 0;
-        }
-
         this.addObject(new Cone(), pos);
+
+        // pave the squares behind the cone
+        for (let x = pos.xSquare; x < this.tileEngine.width; x++) {
+          this.tileEngine.setTileAtLayer('ground', { row: pos.ySquare, col: x }, 1);
+
+          const pavedPos = { xSquare: x, ySquare: pos.ySquare };
+          const pavedObject = this.findObject(pavedPos);
+          if (pavedObject instanceof Plant) {
+            pavedObject.ttl = 0;
+          }
+        }
         break;
       }
     }
@@ -194,6 +202,10 @@ export class Level {
     }
 
     return undefined;
+  }
+
+  private getTile(position: GridPosition): number {
+    return this.tileEngine.tileAtLayer('ground', { row: position.ySquare, col: position.xSquare });
   }
 
   private getSquareBounds(o: GameObject): SquareBounds {
