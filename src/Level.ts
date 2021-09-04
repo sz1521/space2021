@@ -68,7 +68,6 @@ export const isInside = (point: { x: number; y: number }, bounds: SquareBounds):
 type ObjectSelector = (o: GameObject) => boolean;
 
 const anyObject: ObjectSelector = () => true;
-const nonPlant: ObjectSelector = (o) => !(o instanceof Plant);
 
 export class Level {
   private tileEngine: TileEngine;
@@ -140,7 +139,13 @@ export class Level {
         ySquare: Math.floor(Math.random() * this.tileEngine.height),
       };
 
-      if (this.isFreeOf(pos, nonPlant)) {
+      const objectAtTile = this.findObject(pos);
+
+      if (objectAtTile == null || objectAtTile instanceof Plant) {
+        if (objectAtTile instanceof Plant) {
+          objectAtTile.ttl = 0;
+        }
+
         this.addObject(new Cone(), pos);
         break;
       }
@@ -155,6 +160,23 @@ export class Level {
     for (const o of this.gameObjects) {
       o.render();
     }
+  }
+
+  private findObject(position: GridPosition): GameObject | undefined {
+    const square: SquareBounds = {
+      x: position.xSquare * TILE_WIDTH,
+      y: position.ySquare * TILE_HEIGHT,
+      width: TILE_WIDTH,
+      height: TILE_HEIGHT,
+    };
+
+    for (const o of this.gameObjects) {
+      if (collides(this.getSquareBounds(o), square)) {
+        return o;
+      }
+    }
+
+    return undefined;
   }
 
   private findAdjascentObject(o: GameObject, selector: ObjectSelector): GameObject | undefined {
