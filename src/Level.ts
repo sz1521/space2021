@@ -101,7 +101,9 @@ export class Level {
   onClick(x: number, y: number): void {
     if (0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight) {
       const position = this.toGridPosition(x, y);
-      this.addObject(new Plant(this.selectedSpecies), position);
+      if (this.isFree(position)) {
+        this.addObject(new Plant(this.selectedSpecies), position);
+      }
     }
   }
 
@@ -154,6 +156,23 @@ export class Level {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     };
+  }
+
+  private isFree(position: GridPosition): boolean {
+    const square: SquareBounds = {
+      x: position.xSquare * TILE_WIDTH,
+      y: position.ySquare * TILE_HEIGHT,
+      width: TILE_WIDTH,
+      height: TILE_HEIGHT,
+    };
+
+    for (const o of this.gameObjects) {
+      if (collides(this.getSquareBounds(o), square)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private toGridPosition(x: number, y: number): GridPosition {
