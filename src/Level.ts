@@ -34,15 +34,17 @@ const map =
     2,  2,  3,  3,  2,  2,  2,  2,  3,  3,  2,  3,  3,  2,
     2,  2,  3,  2,  3,  3,  3,  3,  3,  3,  3,  2,  2,  3,
     2,  2,  3,  2,  2,  2,  3,  3,  3,  2,  3,  2,  3,  3,
-    3,  2,  2,  2,  2,  2,  3,  2,  2,  3,  2,  1,  1,  1,
+    3,  2,  2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  2,  3,
     3,  2,  2,  2,  2,  2,  3,  3,  3,  2,  3,  2,  3,  3,
     2,  2,  3,  3,  4,  2,  2,  2,  4,  3,  2,  3,  3,  2,
-    2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  1,  1,
-    2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
+    2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  2,  3,
+    2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  3,
   ];
 
 const TILE_WIDTH = 32;
 const TILE_HEIGHT = 16;
+
+const ATTACK_INTERVAL = 3000;
 
 interface GridPosition {
   xSquare: number;
@@ -63,9 +65,15 @@ export const isInside = (point: { x: number; y: number }, bounds: SquareBounds):
     point.y < bounds.y + bounds.height;
 };
 
+type ObjectSelector = (o: GameObject) => boolean;
+
+const anyObject: ObjectSelector = () => true;
+const nonPlant: ObjectSelector = (o) => !(o instanceof Plant);
+
 export class Level {
   private tileEngine: TileEngine;
   private gameObjects: GameObject[] = [];
+  private attackStartTime: number = performance.now();
 
   selectedSpecies: Species = 'blue_flower';
 
@@ -92,22 +100,24 @@ export class Level {
     flower.x = 64;
     flower.y = 64;
     this.gameObjects.push(flower);
-
-    for (let i = 0; i < 5; i++) {
-      this.addObject(new Cone(), this.getRandomPosition());
-    }
   }
 
   onClick(x: number, y: number): void {
     if (0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight) {
       const position = this.toGridPosition(x, y);
-      if (this.isFree(position)) {
+      if (this.isFreeOf(position, anyObject)) {
         this.addObject(new Plant(this.selectedSpecies), position);
       }
     }
   }
 
   update(): void {
+    const now = performance.now();
+    if (now - this.attackStartTime > ATTACK_INTERVAL) {
+      this.attackStartTime = now;
+      this.attack();
+    }
+
     for (const o of this.gameObjects) {
       o.update();
       if (o instanceof Plant && o.canGrab()) {
@@ -122,6 +132,21 @@ export class Level {
     this.gameObjects = this.gameObjects.filter(o => o.isAlive());
   }
 
+  private attack(): void {
+    // try 10 times
+    for (let i = 0; i < 10; i++) {
+      const pos: GridPosition = {
+        xSquare: this.tileEngine.width - 3,
+        ySquare: Math.floor(Math.random() * this.tileEngine.height),
+      };
+
+      if (this.isFreeOf(pos, nonPlant)) {
+        this.addObject(new Cone(), pos);
+        break;
+      }
+    }
+  }
+
   render(): void {
     // Sort objects for perspective effect, back-to-front.
     this.gameObjects.sort((a, b) => a.y - b.y);
@@ -132,7 +157,7 @@ export class Level {
     }
   }
 
-  private findAdjascentObject(o: GameObject, selector: (other: GameObject) => boolean): GameObject | undefined {
+  private findAdjascentObject(o: GameObject, selector: ObjectSelector): GameObject | undefined {
     const nearbyArea = {
       x: o.x - TILE_WIDTH,
       y: o.y + (o.height - TILE_HEIGHT) - TILE_HEIGHT,
@@ -158,7 +183,7 @@ export class Level {
     };
   }
 
-  private isFree(position: GridPosition): boolean {
+  private isFreeOf(position: GridPosition, selector: ObjectSelector): boolean {
     const square: SquareBounds = {
       x: position.xSquare * TILE_WIDTH,
       y: position.ySquare * TILE_HEIGHT,
@@ -167,7 +192,7 @@ export class Level {
     };
 
     for (const o of this.gameObjects) {
-      if (collides(this.getSquareBounds(o), square)) {
+      if (selector(o) && collides(this.getSquareBounds(o), square)) {
         return false;
       }
     }
@@ -186,12 +211,5 @@ export class Level {
     o.x = position.xSquare * TILE_WIDTH;
     o.y = position.ySquare * TILE_HEIGHT - (o.height - TILE_HEIGHT);
     this.gameObjects.push(o);
-  }
-
-  private getRandomPosition(): GridPosition {
-    return {
-      xSquare: Math.floor(Math.random() * this.tileEngine.width),
-      ySquare: Math.floor(Math.random() * this.tileEngine.height),
-    };
   }
 }
