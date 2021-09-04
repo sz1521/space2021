@@ -45,6 +45,7 @@ const TILE_WIDTH = 32;
 const TILE_HEIGHT = 16;
 
 const ATTACK_INTERVAL = 3000;
+const ATTACK_ADVANCE_INTERVAL = 6000;
 
 interface GridPosition {
   xSquare: number;
@@ -72,7 +73,10 @@ const anyObject: ObjectSelector = () => true;
 export class Level {
   private tileEngine: TileEngine;
   private gameObjects: GameObject[] = [];
+
+  private attackXSquare: number;
   private attackStartTime: number = performance.now();
+  private attackAdvanceTime: number = performance.now();
 
   selectedSpecies: Species = 'blue_flower';
 
@@ -94,6 +98,8 @@ export class Level {
         data: map,
       }]
     });
+
+    this.attackXSquare = this.tileEngine.width - 1;
 
     const flower = new Plant('blue_flower');
     flower.x = 64;
@@ -118,6 +124,11 @@ export class Level {
       this.attack();
     }
 
+    if (this.attackXSquare > 0 && now - this.attackAdvanceTime > ATTACK_ADVANCE_INTERVAL) {
+      this.attackAdvanceTime = now;
+      this.attackXSquare -= 1;
+    }
+
     for (const o of this.gameObjects) {
       o.update();
       if (o instanceof Plant && o.canGrab()) {
@@ -136,7 +147,7 @@ export class Level {
     // try 10 times
     for (let i = 0; i < 10; i++) {
       const pos: GridPosition = {
-        xSquare: this.tileEngine.width - 3,
+        xSquare: this.attackXSquare,
         ySquare: Math.floor(Math.random() * this.tileEngine.height),
       };
 
