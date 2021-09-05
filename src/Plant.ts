@@ -81,6 +81,7 @@ export class Plant extends Sprite.class {
   }
 
   update(): void {
+    super.update();
     if (this.state.type === 'grabbing' && performance.now() - this.state.startTime > 3000) {
       this.state = { type: 'idle' };
     }

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-import { Level } from "./Level";
-import { init, load, GameLoop } from "kontra";
+import { init, load } from "kontra";
+import { Game } from "./Game";
 
 const { canvas } = init();
 
@@ -36,23 +36,8 @@ window.addEventListener("resize", resize, false);
 resize();
 
 load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
-  const level = new Level();
-
-  const loop = GameLoop({
-    update: (): void => {
-      level.update();
-    },
-
-    render: (): void => {
-      level.render();
-    },
-  });
-
-  addEventListener('click', (e) => {
-    level.onClick(e.x, e.y);
-  });
-
-  loop.start();
+  const game = new Game();
+  game.start();
 }).catch((error) => {
   // eslint-disable-next-line no-console
   console.warn('Error loading assets:', error);

@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-import { Plant } from "./Plant";
+import { Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
-import { collides, GameObject, imageAssets, TileEngine, Vector } from "kontra";
+import { collides, GameObject, imageAssets, TileEngine } from "kontra";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -34,31 +34,51 @@ const map =
     2,  2,  3,  3,  2,  2,  2,  2,  3,  3,  2,  3,  3,  2,
     2,  2,  3,  2,  3,  3,  3,  3,  3,  3,  3,  2,  2,  3,
     2,  2,  3,  2,  2,  2,  3,  3,  3,  2,  3,  2,  3,  3,
-    3,  2,  2,  2,  2,  2,  3,  2,  2,  3,  2,  1,  1,  1,
+    3,  2,  2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  2,  3,
     3,  2,  2,  2,  2,  2,  3,  3,  3,  2,  3,  2,  3,  3,
     2,  2,  3,  3,  4,  2,  2,  2,  4,  3,  2,  3,  3,  2,
-    2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  1,  1,
-    2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  1,
+    2,  2,  2,  2,  3,  2,  2,  2,  2,  3,  2,  3,  2,  3,
+    2,  3,  3,  2,  2,  2,  4,  3,  2,  3,  3,  3,  2,  3,
   ];
 
 const TILE_WIDTH = 32;
 const TILE_HEIGHT = 16;
+
+const ATTACK_INTERVAL = 3000;
+const ATTACK_ADVANCE_INTERVAL = 6000;
 
 interface GridPosition {
   xSquare: number;
   ySquare: number;
 }
 
-interface SquareBounds {
+export interface SquareBounds {
   x: number;
   y: number;
   width: number;
   height: number;
 }
 
+export const isInside = (point: { x: number; y: number }, bounds: SquareBounds): boolean => {
+  return bounds.x <= point.x &&
+    bounds.y <= point.y &&
+    point.x < bounds.x + bounds.width &&
+    point.y < bounds.y + bounds.height;
+};
+
+type ObjectSelector = (o: GameObject) => boolean;
+
+const anyObject: ObjectSelector = () => true;
+
 export class Level {
   private tileEngine: TileEngine;
   private gameObjects: GameObject[] = [];
+
+  private attackXSquare: number;
+  private attackStartTime: number = performance.now();
+  private attackAdvanceTime: number = performance.now();
+
+  selectedSpecies: Species = 'blue_flower';
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -79,27 +99,36 @@ export class Level {
       }]
     });
 
+    this.attackXSquare = this.tileEngine.width - 1;
+
     const flower = new Plant('blue_flower');
     flower.x = 64;
     flower.y = 64;
     this.gameObjects.push(flower);
-
-    for (let i = 0; i < 5; i++) {
-      this.addObject(new Cone(), this.getRandomPosition());
-    }
   }
 
   onClick(x: number, y: number): void {
-    const position = this.toGridPosition(x, y);
-
-    if (this.tileEngine.width <= position.xSquare || this.tileEngine.height <= position.ySquare) {
-      return;
+    if (0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight) {
+      const position = this.toGridPosition(x, y);
+      const isPaved = this.getTile(position) === 1;
+      if (!isPaved && this.isFreeOf(position, anyObject)) {
+        this.addObject(new Plant(this.selectedSpecies), position);
+      }
     }
-
-    this.addObject(new Plant('vine'), position);
   }
 
   update(): void {
+    const now = performance.now();
+    if (now - this.attackStartTime > ATTACK_INTERVAL) {
+      this.attackStartTime = now;
+      this.attack();
+    }
+
+    if (this.attackXSquare > 0 && now - this.attackAdvanceTime > ATTACK_ADVANCE_INTERVAL) {
+      this.attackAdvanceTime = now;
+      this.attackXSquare -= 1;
+    }
+
     for (const o of this.gameObjects) {
       o.update();
       if (o instanceof Plant && o.canGrab()) {
@@ -114,6 +143,34 @@ export class Level {
     this.gameObjects = this.gameObjects.filter(o => o.isAlive());
   }
 
+  private attack(): void {
+    // try 10 times
+    for (let i = 0; i < 10; i++) {
+      const pos: GridPosition = {
+        xSquare: this.attackXSquare,
+        ySquare: Math.floor(Math.random() * this.tileEngine.height),
+      };
+
+      const objectAtTile = this.findObject(pos);
+
+      if (objectAtTile == null || objectAtTile instanceof Plant) {
+        this.addObject(new Cone(), pos);
+
+        // pave the squares behind the cone
+        for (let x = pos.xSquare; x < this.tileEngine.width; x++) {
+          this.tileEngine.setTileAtLayer('ground', { row: pos.ySquare, col: x }, 1);
+
+          const pavedPos = { xSquare: x, ySquare: pos.ySquare };
+          const pavedObject = this.findObject(pavedPos);
+          if (pavedObject instanceof Plant) {
+            pavedObject.ttl = 0;
+          }
+        }
+        break;
+      }
+    }
+  }
+
   render(): void {
     // Sort objects for perspective effect, back-to-front.
     this.gameObjects.sort((a, b) => a.y - b.y);
@@ -124,7 +181,24 @@ export class Level {
     }
   }
 
-  private findAdjascentObject(o: GameObject, selector: (other: GameObject) => boolean): GameObject | undefined {
+  private findObject(position: GridPosition): GameObject | undefined {
+    const square: SquareBounds = {
+      x: position.xSquare * TILE_WIDTH,
+      y: position.ySquare * TILE_HEIGHT,
+      width: TILE_WIDTH,
+      height: TILE_HEIGHT,
+    };
+
+    for (const o of this.gameObjects) {
+      if (collides(this.getSquareBounds(o), square)) {
+        return o;
+      }
+    }
+
+    return undefined;
+  }
+
+  private findAdjascentObject(o: GameObject, selector: ObjectSelector): GameObject | undefined {
     const nearbyArea = {
       x: o.x - TILE_WIDTH,
       y: o.y + (o.height - TILE_HEIGHT) - TILE_HEIGHT,
@@ -141,6 +215,10 @@ export class Level {
     return undefined;
   }
 
+  private getTile(position: GridPosition): number {
+    return this.tileEngine.tileAtLayer('ground', { row: position.ySquare, col: position.xSquare });
+  }
+
   private getSquareBounds(o: GameObject): SquareBounds {
     return {
       x: o.x,
@@ -148,6 +226,23 @@ export class Level {
       width: TILE_WIDTH,
       height: TILE_HEIGHT,
     };
+  }
+
+  private isFreeOf(position: GridPosition, selector: ObjectSelector): boolean {
+    const square: SquareBounds = {
+      x: position.xSquare * TILE_WIDTH,
+      y: position.ySquare * TILE_HEIGHT,
+      width: TILE_WIDTH,
+      height: TILE_HEIGHT,
+    };
+
+    for (const o of this.gameObjects) {
+      if (selector(o) && collides(this.getSquareBounds(o), square)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private toGridPosition(x: number, y: number): GridPosition {
@@ -161,12 +256,5 @@ export class Level {
     o.x = position.xSquare * TILE_WIDTH;
     o.y = position.ySquare * TILE_HEIGHT - (o.height - TILE_HEIGHT);
     this.gameObjects.push(o);
-  }
-
-  private getRandomPosition(): GridPosition {
-    return {
-      xSquare: Math.floor(Math.random() * this.tileEngine.width),
-      ySquare: Math.floor(Math.random() * this.tileEngine.height),
-    };
   }
 }
