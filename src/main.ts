@@ -24,7 +24,7 @@
 
 import { Level } from "./Level";
 import { init, load, GameLoop } from "kontra";
-import { Sfx } from "./sfx";
+import { playSong } from "./sfx";
 
 const { canvas } = init();
 
@@ -39,9 +39,7 @@ resize();
 load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
   const level = new Level();
 
-  const sfx = new Sfx();
-
-  sfx.setSong();
+  playSong();
 
   const loop = GameLoop({
     update: (): void => {
