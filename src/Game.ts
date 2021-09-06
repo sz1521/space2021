@@ -63,17 +63,17 @@ export class Game {
 
   constructor() {
     this.level = new Level();
+  }
 
-    addEventListener('click', (e) => {
-      for (const button of this.buttons) {
-        if (isInside(e, button.bounds)) {
-          this.level.selectedSpecies = button.species;
-          return;
-        }
+  onClick(e: MouseEvent): void {
+    for (const button of this.buttons) {
+      if (isInside(e, button.bounds)) {
+        this.level.selectedSpecies = button.species;
+        return;
       }
+    }
 
-      this.level.onClick(e.x - LEVEL_X, e.y - LEVEL_Y);
-    });
+    this.level.onClick(e.x - LEVEL_X, e.y - LEVEL_Y);
   }
 
   start() {

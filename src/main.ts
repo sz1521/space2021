@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-import { Level } from "./Level";
 import { init, load, GameLoop } from "kontra";
+import { Game } from "./Game";
 import { playSong } from "./sfx";
 
-const { canvas } = init();
+const { canvas, context } = init();
 
 const resize = () => {
   canvas.width = window.innerWidth - 10;
@@ -36,26 +36,45 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
-load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
-  const level = new Level();
-
-  playSong();
-
-  const loop = GameLoop({
+const createTextScreenLoop = (text: string): GameLoop => {
+  return GameLoop({
     update: (): void => {
-      level.update();
     },
 
     render: (): void => {
-      level.render();
+      context.save();
+      context.fillStyle = 'White';
+      context.font = '30px Sans-serif';
+      context.fillText(text, 100, 100);
+      context.restore();
     },
-  });
+  })
+};
+
+let startScreenLoop: GameLoop | null = createTextScreenLoop("Loading");
+startScreenLoop.start();
+
+load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
+  const game = new Game();
+
+  startScreenLoop?.stop();
+
+  startScreenLoop = createTextScreenLoop("Click to start");
+  startScreenLoop.start();
 
   addEventListener('click', (e) => {
-    level.onClick(e.x, e.y);
+    if (startScreenLoop) {
+      startScreenLoop.stop();
+      startScreenLoop = null;
+
+      playSong();
+      game.start();
+    } else {
+      game.onClick(e);
+    }
   });
 
-  loop.start();
+  startScreenLoop.start();
 }).catch((error) => {
   // eslint-disable-next-line no-console
   console.warn('Error loading assets:', error);
