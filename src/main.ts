@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-import { init, load } from "kontra";
+import { init, load, GameLoop } from "kontra";
 import { Game } from "./Game";
+import { playSong, renderSong } from "./sfx";
 
-const { canvas } = init();
+const { canvas, context } = init();
 
 const resize = () => {
   canvas.width = window.innerWidth - 10;
@@ -35,9 +36,47 @@ const resize = () => {
 window.addEventListener("resize", resize, false);
 resize();
 
+const createTextScreenLoop = (text: string): GameLoop => {
+  return GameLoop({
+    update: (): void => {
+    },
+
+    render: (): void => {
+      context.save();
+      context.fillStyle = 'White';
+      context.font = '30px Sans-serif';
+      context.fillText(text, 100, 100);
+      context.restore();
+    },
+  })
+};
+
+let startScreenLoop: GameLoop | null = createTextScreenLoop("LOADING...");
+startScreenLoop.start();
+
 load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
   const game = new Game();
-  game.start();
+  const tune = renderSong();
+
+  startScreenLoop?.stop();
+
+  startScreenLoop = createTextScreenLoop("CLICK TO START");
+  startScreenLoop.start();
+
+  addEventListener('click', (e) => {
+    if (startScreenLoop) {
+      startScreenLoop.stop();
+      startScreenLoop = null;
+
+      playSong(tune);
+
+      game.start();
+    } else {
+      game.onClick(e);
+    }
+  });
+
+  startScreenLoop.start();
 }).catch((error) => {
   // eslint-disable-next-line no-console
   console.warn('Error loading assets:', error);

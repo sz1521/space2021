@@ -13,4 +13,8 @@ module.exports = {
   rules: {
     "no-console": "error",
   },
+  globals: {
+    zzfxP: true,
+    zzfxM: true,
+  },
 };
