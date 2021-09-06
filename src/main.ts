@@ -24,7 +24,7 @@
 
 import { init, load, GameLoop } from "kontra";
 import { Game } from "./Game";
-import { playSong } from "./sfx";
+import { playSong, renderSong } from "./sfx";
 
 const { canvas, context } = init();
 
@@ -51,15 +51,16 @@ const createTextScreenLoop = (text: string): GameLoop => {
   })
 };
 
-let startScreenLoop: GameLoop | null = createTextScreenLoop("Loading");
+let startScreenLoop: GameLoop | null = createTextScreenLoop("LOADING...");
 startScreenLoop.start();
 
 load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
   const game = new Game();
+  const tune = renderSong();
 
   startScreenLoop?.stop();
 
-  startScreenLoop = createTextScreenLoop("Click to start");
+  startScreenLoop = createTextScreenLoop("CLICK TO START");
   startScreenLoop.start();
 
   addEventListener('click', (e) => {
@@ -67,7 +68,8 @@ load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
       startScreenLoop.stop();
       startScreenLoop = null;
 
-      playSong();
+      playSong(tune);
+
       game.start();
     } else {
       game.onClick(e);
