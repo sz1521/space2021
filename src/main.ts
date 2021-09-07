@@ -54,7 +54,7 @@ const createTextScreenLoop = (text: string): GameLoop => {
 let startScreenLoop: GameLoop | null = createTextScreenLoop("LOADING...");
 startScreenLoop.start();
 
-load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
+load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png', 'roller.png').then(() => {
   const game = new Game();
   const tune = renderSong();
 

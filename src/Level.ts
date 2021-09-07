@@ -25,6 +25,7 @@
 import { Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
 import { collides, GameObject, imageAssets, TileEngine } from "kontra";
+import { Roller } from "./Roller";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -101,10 +102,7 @@ export class Level {
 
     this.attackXSquare = this.tileEngine.width - 1;
 
-    const flower = new Plant('blue_flower');
-    flower.x = 64;
-    flower.y = 64;
-    this.gameObjects.push(flower);
+    this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
   }
 
   onClick(x: number, y: number): void {
