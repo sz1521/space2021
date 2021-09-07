@@ -75,8 +75,6 @@ load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png').then(() => {
       game.onClick(e);
     }
   });
-
-  startScreenLoop.start();
 }).catch((error) => {
   // eslint-disable-next-line no-console
   console.warn('Error loading assets:', error);
