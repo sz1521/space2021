@@ -27,6 +27,9 @@ import { Game } from "./Game";
 import { playSong, renderSong } from "./sfx";
 
 const { canvas, context } = init();
+(context as any).webkitImageSmoothingEnabled = false;
+(context as any).mozImageSmoothingEnabled = false;
+context.imageSmoothingEnabled = false;
 
 const resize = () => {
   canvas.width = window.innerWidth - 10;

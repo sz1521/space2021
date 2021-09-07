@@ -29,6 +29,8 @@ import { Species } from "./Plant";
 const LEVEL_X = 0;
 const LEVEL_Y = 80;
 
+const ZOOM_FACTOR = 2;
+
 interface Button {
   text: string;
   species: Species;
@@ -73,7 +75,9 @@ export class Game {
       }
     }
 
-    this.level.onClick(e.x - LEVEL_X, e.y - LEVEL_Y);
+    this.level.onClick(
+      (e.x - LEVEL_X) / ZOOM_FACTOR,
+      (e.y - LEVEL_Y) / ZOOM_FACTOR);
   }
 
   start() {
@@ -88,7 +92,10 @@ export class Game {
         context.save();
         context.translate(LEVEL_X, LEVEL_Y);
 
+        context.save();
+        context.scale(ZOOM_FACTOR, ZOOM_FACTOR);
         this.level.render();
+        context.restore();
 
         context.restore();
 
