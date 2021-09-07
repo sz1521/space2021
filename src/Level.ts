@@ -74,6 +74,7 @@ const anyObject: ObjectSelector = () => true;
 export class Level {
   private tileEngine: TileEngine;
   private gameObjects: GameObject[] = [];
+  private rollers: Array<Roller>;
 
   private attackXSquare: number;
   private attackStartTime: number = performance.now();
@@ -100,7 +101,8 @@ export class Level {
       }]
     });
 
-    this.attackXSquare = this.tileEngine.width - 1;
+    this.rollers = new Array<Roller>(this.tileEngine.height);
+    this.attackXSquare = this.tileEngine.width - 3;
 
     this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
   }
@@ -153,6 +155,13 @@ export class Level {
 
       if (objectAtTile == null || objectAtTile instanceof Plant) {
         this.addObject(new Cone(), pos);
+
+        if (!this.rollers[pos.ySquare]) {
+          const roller = new Roller();
+          this.addObject(roller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
+          this.rollers[pos.ySquare] = roller;
+          roller.startMoving();
+        }
 
         // pave the squares behind the cone
         for (let x = pos.xSquare; x < this.tileEngine.width; x++) {

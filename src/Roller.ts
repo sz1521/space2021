@@ -24,6 +24,8 @@
 
 import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
 
+const SPEED = 0.1;
+
 let spriteSheet: SpriteSheet | undefined;
 
 const getAnimations = (): {[name: string] : Animation} => {
@@ -35,6 +37,7 @@ const getAnimations = (): {[name: string] : Animation} => {
       animations: {
         rolling: {
           frames: [0, 1],
+          frameRate: 1,
         },
       },
     });
@@ -48,5 +51,10 @@ export class Roller extends Sprite.class {
     super({
       animations: getAnimations(),
     });
+  }
+
+  startMoving(): void {
+    this.dx = -SPEED + Math.random() * 0.01;
+    this.playAnimation('rolling');
   }
 }
