@@ -176,14 +176,20 @@ export class Level {
           objectAtTile.ttl = 0;
         }
 
-        this.addObject(new Cone(), pos);
+        const cone = new Cone();
+        this.addObject(cone, pos);
 
         // Add roller if there isn't one on this row yet.
         if (!this.rollers[pos.ySquare]) {
-          const roller = new Roller();
-          this.addObject(roller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
-          this.rollers[pos.ySquare] = roller;
-          roller.startMoving();
+          const newRoller = new Roller();
+          newRoller.setObjectToFollow(cone);
+          this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
+          this.rollers[pos.ySquare] = newRoller;
+        } else {
+          const existingRoller = this.rollers[pos.ySquare];
+          if (existingRoller.dx === 0) {
+            existingRoller.setObjectToFollow(cone);
+          }
         }
 
         break;

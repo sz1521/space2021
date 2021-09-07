@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { Animation, GameObject, imageAssets, Sprite, SpriteSheet } from "kontra";
 
 const SPEED = 0.1;
 
@@ -35,6 +35,9 @@ const getAnimations = (): {[name: string] : Animation} => {
       frameWidth: 32,
       frameHeight: 32,
       animations: {
+        idle: {
+          frames: [0],
+        },
         rolling: {
           frames: [0, 1],
           frameRate: 1,
@@ -47,14 +50,27 @@ const getAnimations = (): {[name: string] : Animation} => {
 };
 
 export class Roller extends Sprite.class {
+  private objectToFollow: GameObject | undefined;
+
   constructor() {
     super({
       animations: getAnimations(),
     });
   }
 
-  startMoving(): void {
+  setObjectToFollow(o: GameObject | undefined) {
+    this.objectToFollow = o;
     this.dx = -SPEED + Math.random() * 0.01;
     this.playAnimation('rolling');
+  }
+
+  update(): void {
+    super.update();
+
+    if (!this.objectToFollow?.isAlive()) {
+      this.objectToFollow = undefined;
+      this.dx = 0;
+      this.playAnimation('idle');
+    }
   }
 }
