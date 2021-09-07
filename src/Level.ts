@@ -70,6 +70,7 @@ export const isInside = (point: { x: number; y: number }, bounds: SquareBounds):
 type ObjectSelector = (o: GameObject) => boolean;
 
 const anyObject: ObjectSelector = () => true;
+const otherThanRoller: ObjectSelector = (o) => !(o instanceof Roller);
 
 export class Level {
   private tileEngine: TileEngine;
@@ -131,6 +132,11 @@ export class Level {
 
     for (const o of this.gameObjects) {
       o.update();
+
+      if (o instanceof Roller && o.dx < 0) {
+        this.pave(o);
+      }
+
       if (o instanceof Plant && o.canGrab()) {
         const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
         if (cone) {
@@ -143,6 +149,18 @@ export class Level {
     this.gameObjects = this.gameObjects.filter(o => o.isAlive());
   }
 
+  private pave(roller: Roller): void {
+    const pos = this.toGridPosition(roller.x + roller.width, roller.y + (roller.height - TILE_HEIGHT));
+    const tile = this.getTile(pos);
+    if (tile != null && tile !== 1) {
+      this.setTile(pos, 1);
+      const objectAtTile = this.findObject(pos, otherThanRoller);
+      if (objectAtTile) {
+        objectAtTile.ttl = 0;
+      }
+    }
+  }
+
   private attack(): void {
     // try 10 times
     for (let i = 0; i < 10; i++) {
@@ -151,11 +169,16 @@ export class Level {
         ySquare: Math.floor(Math.random() * this.tileEngine.height),
       };
 
-      const objectAtTile = this.findObject(pos);
+      const objectAtTile = this.findObject(pos, anyObject);
 
       if (objectAtTile == null || objectAtTile instanceof Plant) {
+        if (objectAtTile instanceof Plant) {
+          objectAtTile.ttl = 0;
+        }
+
         this.addObject(new Cone(), pos);
 
+        // Add roller if there isn't one on this row yet.
         if (!this.rollers[pos.ySquare]) {
           const roller = new Roller();
           this.addObject(roller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
@@ -163,16 +186,6 @@ export class Level {
           roller.startMoving();
         }
 
-        // pave the squares behind the cone
-        for (let x = pos.xSquare; x < this.tileEngine.width; x++) {
-          this.tileEngine.setTileAtLayer('ground', { row: pos.ySquare, col: x }, 1);
-
-          const pavedPos = { xSquare: x, ySquare: pos.ySquare };
-          const pavedObject = this.findObject(pavedPos);
-          if (pavedObject instanceof Plant) {
-            pavedObject.ttl = 0;
-          }
-        }
         break;
       }
     }
@@ -188,7 +201,7 @@ export class Level {
     }
   }
 
-  private findObject(position: GridPosition): GameObject | undefined {
+  private findObject(position: GridPosition, selector: ObjectSelector): GameObject | undefined {
     const square: SquareBounds = {
       x: position.xSquare * TILE_WIDTH,
       y: position.ySquare * TILE_HEIGHT,
@@ -197,7 +210,7 @@ export class Level {
     };
 
     for (const o of this.gameObjects) {
-      if (collides(this.getSquareBounds(o), square)) {
+      if (selector(o) && collides(this.getSquareBounds(o), square)) {
         return o;
       }
     }
@@ -222,8 +235,20 @@ export class Level {
     return undefined;
   }
 
-  private getTile(position: GridPosition): number {
-    return this.tileEngine.tileAtLayer('ground', { row: position.ySquare, col: position.xSquare });
+  private getTile(position: GridPosition): number | null {
+    if (0 <= position.xSquare &&
+      position.xSquare < this.tileEngine.width &&
+      0 <= position.ySquare &&
+      position.ySquare < this.tileEngine.height)
+    {
+      return this.tileEngine.tileAtLayer('ground', { row: position.ySquare, col: position.xSquare });
+    }
+
+    return null;
+  }
+
+  private setTile(position: GridPosition, tile: number): void {
+    this.tileEngine.setTileAtLayer('ground', { row: position.ySquare, col: position.xSquare }, tile);
   }
 
   private getSquareBounds(o: GameObject): SquareBounds {
