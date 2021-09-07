@@ -42,22 +42,22 @@ export class Game {
 
   private buttons: Button[] = [
     {
-      text: 'F',
+      text: 'Flower',
       species: 'blue_flower',
       bounds: {
         x: 0,
         y: 0,
-        width: 50,
+        width: 100,
         height: 50,
       }
     },
     {
-      text: 'V',
+      text: 'Vine',
       species: 'vine',
       bounds: {
-        x: 55,
+        x: 105,
         y: 0,
-        width: 50,
+        width: 100,
         height: 50,
       }
     }
@@ -111,7 +111,7 @@ export class Game {
 
     for (const button of this.buttons) {
       const bounds = button.bounds;
-      context.fillStyle = button.species === this.level.selectedSpecies ? 'blue' : 'gray';
+      context.fillStyle = button.species === this.level.selectedSpecies ? 'green' : 'red';
       context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
       context.fillStyle = 'white';
