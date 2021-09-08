@@ -25,21 +25,23 @@
 import { Animation, getContext, imageAssets, Sprite, SpriteSheet } from "kontra";
 import { easeOutCubic } from "./easings";
 
-const PHOTOSYNTHESIS_INTERVAL = 6000;
-const GLUCOSE_AMOUNT = 1;
-
 export type Species = 'blue_flower' | 'vine';
 
 export interface PlantInfo {
   cost: number;
+  glucosis: number;
+  interval?: number;
 }
 
 const infos: Record<Species, PlantInfo> = {
   'blue_flower': {
     cost: 2,
+    glucosis: 1,
+    interval: 6000,
   },
   'vine': {
     cost: 20,
+    glucosis: 0,
   }
 };
 
@@ -113,6 +115,12 @@ export class Plant extends Sprite.class {
     const context = getContext();
     super.draw();
 
+    if (infos[this.species].interval != null) {
+      this.renderGlucose(context);
+    }
+  }
+
+  private renderGlucose(context: CanvasRenderingContext2D): void {
     const now = performance.now();
     const timeSincePhotoSynthesis = now - this.lastPhotosynthesisTime;
     if (timeSincePhotoSynthesis < 1000) {
@@ -121,18 +129,19 @@ export class Plant extends Sprite.class {
       context.font = 'bold 12px Sans-serif';
       const x = 10;
       const y = 10 - easeOutCubic(timeSincePhotoSynthesis / 1000) * 10;
-      context.fillText('+' + GLUCOSE_AMOUNT, x, y);
+      context.fillText('+' + infos[this.species].glucosis, x, y);
       context.restore();
     }
   }
 
   getGlucose(): number {
-    if (this.species !== 'blue_flower') {
+    const interval = infos[this.species].interval;
+    if (interval == null) {
       return 0;
     }
 
     const now = performance.now();
-    if (now - this.lastPhotosynthesisTime > PHOTOSYNTHESIS_INTERVAL) {
+    if (now - this.lastPhotosynthesisTime > interval) {
       this.lastPhotosynthesisTime = now;
       return 1;
     }
