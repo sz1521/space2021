@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { Plant, Species } from "./Plant";
+import { getCost, Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
 import { collides, GameObject, imageAssets, TileEngine } from "kontra";
 import { Roller } from "./Roller";
@@ -74,6 +74,7 @@ const otherThanRoller: ObjectSelector = (o) => !(o instanceof Roller);
 
 export class Level {
   private tileEngine: TileEngine;
+
   private gameObjects: GameObject[] = [];
   private rollers: Array<Roller>;
 
@@ -81,7 +82,7 @@ export class Level {
   private attackStartTime: number = performance.now();
   private attackAdvanceTime: number = performance.now();
 
-  selectedSpecies: Species = 'blue_flower';
+  glucoseLevel: number = 0;
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -108,12 +109,14 @@ export class Level {
     this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
   }
 
-  onClick(x: number, y: number): void {
-    if (0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight) {
+  insertPlant(x: number, y: number, species: Species): void {
+    const cost = getCost(species);
+    if (this.isInside(x, y) && cost <= this.glucoseLevel) {
       const position = this.toGridPosition(x, y);
       const isPaved = this.getTile(position) === 1;
       if (!isPaved && this.isFreeOf(position, anyObject)) {
-        this.addObject(new Plant(this.selectedSpecies), position);
+        this.addObject(new Plant(species), position);
+        this.glucoseLevel -= cost;
       }
     }
   }
@@ -137,11 +140,18 @@ export class Level {
         this.pave(o);
       }
 
-      if (o instanceof Plant && o.canGrab()) {
-        const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
-        if (cone) {
-          o.startGrabbing();
-          cone.grab();
+      if (o instanceof Plant) {
+        const glucose = o.getGlucose();
+        if (glucose > 0) {
+          this.glucoseLevel += glucose;
+        }
+
+        if (o.canGrab()) {
+          const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
+          if (cone) {
+            o.startGrabbing();
+            cone.grab();
+          }
         }
       }
     }
@@ -294,5 +304,9 @@ export class Level {
     o.x = position.xSquare * TILE_WIDTH;
     o.y = position.ySquare * TILE_HEIGHT - (o.height - TILE_HEIGHT);
     this.gameObjects.push(o);
+  }
+
+  private isInside(x: number, y: number): boolean {
+    return 0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight;
   }
 }

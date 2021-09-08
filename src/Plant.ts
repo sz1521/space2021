@@ -22,9 +22,32 @@
  * SOFTWARE.
  */
 
-import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { Animation, getContext, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { easeOutCubic } from "./easings";
 
 export type Species = 'blue_flower' | 'vine';
+
+export interface PlantInfo {
+  cost: number;
+  glucosis: number;
+  interval?: number;
+}
+
+const infos: Record<Species, PlantInfo> = {
+  'blue_flower': {
+    cost: 2,
+    glucosis: 1,
+    interval: 6000,
+  },
+  'vine': {
+    cost: 20,
+    glucosis: 0,
+  }
+};
+
+export const getCost = (species: Species) => {
+  return infos[species].cost;
+}
 
 type State =
   { type: 'idle' } |
@@ -69,8 +92,9 @@ const getAnimations = (species: Species): {[name: string] : Animation} => {
 
 export class Plant extends Sprite.class {
 
-  species: Species;
-  state: State = { type: 'idle' };
+  private species: Species;
+  private state: State = { type: 'idle' };
+  private lastPhotosynthesisTime: number = 0;
 
   constructor(species: Species) {
     super({
@@ -85,6 +109,44 @@ export class Plant extends Sprite.class {
     if (this.state.type === 'grabbing' && performance.now() - this.state.startTime > 3000) {
       this.state = { type: 'idle' };
     }
+  }
+
+  draw(): void {
+    const context = getContext();
+    super.draw();
+
+    if (infos[this.species].interval != null) {
+      this.renderGlucose(context);
+    }
+  }
+
+  private renderGlucose(context: CanvasRenderingContext2D): void {
+    const now = performance.now();
+    const timeSincePhotoSynthesis = now - this.lastPhotosynthesisTime;
+    if (timeSincePhotoSynthesis < 1000) {
+      context.save();
+      context.fillStyle = 'rgb(30, 255, 30)';
+      context.font = 'bold 12px Sans-serif';
+      const x = 10;
+      const y = 10 - easeOutCubic(timeSincePhotoSynthesis / 1000) * 10;
+      context.fillText('+' + infos[this.species].glucosis, x, y);
+      context.restore();
+    }
+  }
+
+  getGlucose(): number {
+    const interval = infos[this.species].interval;
+    if (interval == null) {
+      return 0;
+    }
+
+    const now = performance.now();
+    if (now - this.lastPhotosynthesisTime > interval) {
+      this.lastPhotosynthesisTime = now;
+      return 1;
+    }
+
+    return 0;
   }
 
   canGrab(): boolean {
