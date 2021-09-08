@@ -24,7 +24,7 @@
 
 import { GameLoop, getContext } from "kontra";
 import { isInside, Level, SquareBounds } from "./Level";
-import { Species } from "./Plant";
+import { getCost, Species } from "./Plant";
 
 const LEVEL_X = 0;
 const LEVEL_Y = 80;
@@ -39,6 +39,7 @@ interface Button {
 
 export class Game {
   private level: Level;
+  private selectedSpecies: Species = 'blue_flower';
 
   private buttons: Button[] = [
     {
@@ -70,14 +71,15 @@ export class Game {
   onClick(e: MouseEvent): void {
     for (const button of this.buttons) {
       if (isInside(e, button.bounds)) {
-        this.level.selectedSpecies = button.species;
+        this.selectedSpecies = button.species;
         return;
       }
     }
 
-    this.level.onClick(
+    this.level.insertPlant(
       (e.x - LEVEL_X) / ZOOM_FACTOR,
-      (e.y - LEVEL_Y) / ZOOM_FACTOR);
+      (e.y - LEVEL_Y) / ZOOM_FACTOR,
+      this.selectedSpecies);
   }
 
   start() {
@@ -119,13 +121,21 @@ export class Game {
   }
 
   private renderButton(context: CanvasRenderingContext2D, button: Button) {
-      const bounds = button.bounds;
-      context.fillStyle = button.species === this.level.selectedSpecies ? 'green' : 'red';
-      context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    const bounds = button.bounds;
+    context.fillStyle = button.species === this.selectedSpecies ? 'green' : 'red';
+    context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
-      context.fillStyle = 'white';
-      context.font = '22px Sans-serif';
-      context.fillText(button.text, bounds.x + 17, bounds.y + 30);
+    context.fillStyle = 'white';
+    context.font = '22px Sans-serif';
+    context.fillText(button.text, bounds.x + 17, bounds.y + 30);
+
+    const cost = getCost(button.species);
+    context.fillStyle = (cost <= this.level.glucoseLevel) ? 'rgb(0, 255, 0)' : 'rgb(0, 100, 0)';
+    context.font = 'bold 19px Sans-serif';
+    context.fillText(
+      cost.toString(),
+      bounds.x + bounds.width - 25,
+      bounds.y + bounds.height - 5);
   }
 
   private renderGlucoseLevel(context: CanvasRenderingContext2D) {

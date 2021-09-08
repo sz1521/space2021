@@ -30,6 +30,23 @@ const GLUCOSE_AMOUNT = 1;
 
 export type Species = 'blue_flower' | 'vine';
 
+export interface PlantInfo {
+  cost: number;
+}
+
+const infos: Record<Species, PlantInfo> = {
+  'blue_flower': {
+    cost: 2,
+  },
+  'vine': {
+    cost: 20,
+  }
+};
+
+export const getCost = (species: Species) => {
+  return infos[species].cost;
+}
+
 type State =
   { type: 'idle' } |
   { type: 'grabbing', startTime: number };
