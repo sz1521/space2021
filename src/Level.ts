@@ -74,12 +74,15 @@ const otherThanRoller: ObjectSelector = (o) => !(o instanceof Roller);
 
 export class Level {
   private tileEngine: TileEngine;
+
   private gameObjects: GameObject[] = [];
   private rollers: Array<Roller>;
 
   private attackXSquare: number;
   private attackStartTime: number = performance.now();
   private attackAdvanceTime: number = performance.now();
+
+  glucoseLevel: number = 0;
 
   selectedSpecies: Species = 'blue_flower';
 
@@ -137,11 +140,18 @@ export class Level {
         this.pave(o);
       }
 
-      if (o instanceof Plant && o.canGrab()) {
-        const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
-        if (cone) {
-          o.startGrabbing();
-          cone.grab();
+      if (o instanceof Plant) {
+        const glucose = o.getGlucose();
+        if (glucose > 0) {
+          this.glucoseLevel += glucose;
+        }
+
+        if (o.canGrab()) {
+          const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
+          if (cone) {
+            o.startGrabbing();
+            cone.grab();
+          }
         }
       }
     }

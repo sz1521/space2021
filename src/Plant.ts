@@ -22,7 +22,11 @@
  * SOFTWARE.
  */
 
-import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { Animation, getContext, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { easeOutCubic } from "./easings";
+
+const PHOTOSYNTHESIS_INTERVAL = 6000;
+const GLUCOSE_AMOUNT = 1;
 
 export type Species = 'blue_flower' | 'vine';
 
@@ -69,8 +73,9 @@ const getAnimations = (species: Species): {[name: string] : Animation} => {
 
 export class Plant extends Sprite.class {
 
-  species: Species;
-  state: State = { type: 'idle' };
+  private species: Species;
+  private state: State = { type: 'idle' };
+  private lastPhotosynthesisTime: number = 0;
 
   constructor(species: Species) {
     super({
@@ -85,6 +90,37 @@ export class Plant extends Sprite.class {
     if (this.state.type === 'grabbing' && performance.now() - this.state.startTime > 3000) {
       this.state = { type: 'idle' };
     }
+  }
+
+  draw(): void {
+    const context = getContext();
+    super.draw();
+
+    const now = performance.now();
+    const timeSincePhotoSynthesis = now - this.lastPhotosynthesisTime;
+    if (timeSincePhotoSynthesis < 1000) {
+      context.save();
+      context.fillStyle = 'rgb(30, 255, 30)';
+      context.font = 'bold 12px Sans-serif';
+      const x = 10;
+      const y = 10 - easeOutCubic(timeSincePhotoSynthesis / 1000) * 10;
+      context.fillText('+' + GLUCOSE_AMOUNT, x, y);
+      context.restore();
+    }
+  }
+
+  getGlucose(): number {
+    if (this.species !== 'blue_flower') {
+      return 0;
+    }
+
+    const now = performance.now();
+    if (now - this.lastPhotosynthesisTime > PHOTOSYNTHESIS_INTERVAL) {
+      this.lastPhotosynthesisTime = now;
+      return 1;
+    }
+
+    return 0;
   }
 
   canGrab(): boolean {

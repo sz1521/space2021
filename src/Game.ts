@@ -110,6 +110,15 @@ export class Game {
     context.save();
 
     for (const button of this.buttons) {
+      this.renderButton(context, button);
+    }
+
+    this.renderGlucoseLevel(context);
+
+    context.restore();
+  }
+
+  private renderButton(context: CanvasRenderingContext2D, button: Button) {
       const bounds = button.bounds;
       context.fillStyle = button.species === this.level.selectedSpecies ? 'green' : 'red';
       context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
@@ -117,8 +126,14 @@ export class Game {
       context.fillStyle = 'white';
       context.font = '22px Sans-serif';
       context.fillText(button.text, bounds.x + 17, bounds.y + 30);
-    }
+  }
 
-    context.restore();
+  private renderGlucoseLevel(context: CanvasRenderingContext2D) {
+    const lastButton = this.buttons[this.buttons.length - 1].bounds;
+    const x = lastButton.x + lastButton.width + 50;
+    const y = 40;
+    context.fillStyle = 'rgb(0, 200, 0)';
+    context.font = '30px Sans-serif';
+    context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
   }
 }
