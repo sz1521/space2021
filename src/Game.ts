@@ -116,6 +116,11 @@ export class Game {
     }
 
     this.renderGlucoseLevel(context);
+    this.renderScore(context);
+
+    if (this.level.isGameOver()) {
+      this.renderGameOver(context);
+    }
 
     context.restore();
   }
@@ -145,5 +150,21 @@ export class Game {
     context.fillStyle = 'rgb(0, 200, 0)';
     context.font = '30px Sans-serif';
     context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
+  }
+
+  private renderScore(context: CanvasRenderingContext2D) {
+    const x = 600;
+    const y = 40;
+    context.fillStyle = 'orange';
+    context.font = '30px Sans-serif';
+    context.fillText('Score: ' + this.level.score, x, y);
+  }
+
+  private renderGameOver(context: CanvasRenderingContext2D) {
+    const x = 200;
+    const y = 300;
+    context.fillStyle = 'white';
+    context.font = 'bold 60px Sans-serif';
+    context.fillText("GAME OVER", x, y);
   }
 }
