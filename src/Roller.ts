@@ -69,8 +69,12 @@ export class Roller extends Sprite.class {
 
     if (!this.objectToFollow?.isAlive()) {
       this.objectToFollow = undefined;
-      this.dx = 0;
-      this.playAnimation('idle');
+
+      // When near the edge, go all the way
+      if (this.x > 64) {
+        this.dx = 0;
+        this.playAnimation('idle');
+      }
     }
   }
 }

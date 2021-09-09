@@ -72,6 +72,11 @@ type ObjectSelector = (o: GameObject) => boolean;
 const anyObject: ObjectSelector = () => true;
 const otherThanRoller: ObjectSelector = (o) => !(o instanceof Roller);
 
+enum State {
+  Running,
+  GameOver,
+}
+
 export class Level {
   private tileEngine: TileEngine;
 
@@ -81,6 +86,9 @@ export class Level {
   private attackXSquare: number;
   private attackStartTime: number = performance.now();
   private attackAdvanceTime: number = performance.now();
+
+  private lastEndingConditionCheck: number = performance.now();
+  private state: State = State.Running;
 
   glucoseLevel: number = 0;
   score: number = 0;
@@ -110,7 +118,15 @@ export class Level {
     this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
   }
 
+  isGameOver(): boolean {
+    return this.state === State.GameOver;
+  }
+
   insertPlant(x: number, y: number, species: Species): void {
+    if (this.state === State.GameOver) {
+      return;
+    }
+
     const cost = getCost(species);
     if (this.isInside(x, y) && cost <= this.glucoseLevel) {
       const position = this.toGridPosition(x, y);
@@ -124,6 +140,14 @@ export class Level {
 
   update(): void {
     const now = performance.now();
+
+    if (this.state !== State.GameOver && now - this.lastEndingConditionCheck > 1000) {
+      this.lastEndingConditionCheck = now;
+      if (this.checkIsGameOver()) {
+        this.state = State.GameOver;
+      }
+    }
+
     if (now - this.attackStartTime > ATTACK_INTERVAL) {
       this.attackStartTime = now;
       this.attack();
@@ -159,6 +183,28 @@ export class Level {
     }
 
     this.gameObjects = this.gameObjects.filter(o => o.isAlive());
+  }
+
+  checkIsGameOver(): boolean {
+    const width = this.tileEngine.width;
+    const height = this.tileEngine.height;
+    const totalTileCount = width * height;
+    let asphaltTileCount = 0;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const tile = this.tileEngine.tileAtLayer('ground', { row: y, col: x });
+        if (tile === 1) {
+          asphaltTileCount++;
+        }
+      }
+    }
+
+    if (asphaltTileCount >= totalTileCount - 2) {
+      return true;
+    }
+
+    return false;
   }
 
   private pave(roller: Roller): void {
