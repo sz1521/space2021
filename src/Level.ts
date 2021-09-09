@@ -45,8 +45,7 @@ const map =
 const TILE_WIDTH = 32;
 const TILE_HEIGHT = 16;
 
-const ATTACK_INTERVAL = 3000;
-const ATTACK_ADVANCE_INTERVAL = 6000;
+const ATTACK_WAVE_INTERVAL = 10000;
 
 interface GridPosition {
   xSquare: number;
@@ -72,17 +71,26 @@ type ObjectSelector = (o: GameObject) => boolean;
 const anyObject: ObjectSelector = () => true;
 const otherThanRoller: ObjectSelector = (o) => !(o instanceof Roller);
 
+enum State {
+  Running,
+  GameOver,
+}
+
 export class Level {
   private tileEngine: TileEngine;
 
   private gameObjects: GameObject[] = [];
   private rollers: Array<Roller>;
 
-  private attackXSquare: number;
+  private attackCount: number = 0;
   private attackStartTime: number = performance.now();
-  private attackAdvanceTime: number = performance.now();
+  private lastRollerCheckTime: number = performance.now();
+
+  private lastEndingConditionCheck: number = performance.now();
+  private state: State = State.Running;
 
   glucoseLevel: number = 0;
+  score: number = 0;
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -104,12 +112,20 @@ export class Level {
     });
 
     this.rollers = new Array<Roller>(this.tileEngine.height);
-    this.attackXSquare = this.tileEngine.width - 3;
 
     this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
+    this.addObject(new Plant('blue_flower'), { xSquare: 3, ySquare: 8 });
+  }
+
+  isGameOver(): boolean {
+    return this.state === State.GameOver;
   }
 
   insertPlant(x: number, y: number, species: Species): void {
+    if (this.state === State.GameOver) {
+      return;
+    }
+
     const cost = getCost(species);
     if (this.isInside(x, y) && cost <= this.glucoseLevel) {
       const position = this.toGridPosition(x, y);
@@ -123,14 +139,23 @@ export class Level {
 
   update(): void {
     const now = performance.now();
-    if (now - this.attackStartTime > ATTACK_INTERVAL) {
+
+    if (this.state !== State.GameOver && now - this.lastEndingConditionCheck > 1000) {
+      this.lastEndingConditionCheck = now;
+      if (this.checkIsGameOver()) {
+        this.state = State.GameOver;
+      }
+    }
+
+    if (now - this.attackStartTime > ATTACK_WAVE_INTERVAL) {
       this.attackStartTime = now;
+      this.attackCount += 1;
       this.attack();
     }
 
-    if (this.attackXSquare > 0 && now - this.attackAdvanceTime > ATTACK_ADVANCE_INTERVAL) {
-      this.attackAdvanceTime = now;
-      this.attackXSquare -= 1;
+    if (now - this.lastRollerCheckTime > 200) {
+      this.lastRollerCheckTime = now;
+      this.checkRollersMovement();
     }
 
     for (const o of this.gameObjects) {
@@ -151,12 +176,63 @@ export class Level {
           if (cone) {
             o.startGrabbing();
             cone.grab();
+            this.score += 1;
           }
         }
       }
     }
 
     this.gameObjects = this.gameObjects.filter(o => o.isAlive());
+  }
+
+  private checkRollersMovement() {
+    const rowCount = this.tileEngine.height;
+    const rowHeight = this.tileEngine.tileheight;
+    const conesOnRows = new Array<boolean>(rowCount).fill(false);
+
+    // Find which rows have at least one cone in them.
+    for (const o of this.gameObjects) {
+      if (o instanceof Cone) {
+        const bounds = this.getSquareBounds(o);
+        const row = Math.floor(bounds.y / rowHeight);
+        conesOnRows[row] = true;
+      }
+    }
+
+    // Update rollers movement based on if there are cones.
+    for (let row = 0; row < rowCount; row++) {
+      const roller = this.rollers[row];
+      if (roller) {
+        if (conesOnRows[row] && roller.dx === 0) {
+          roller.move();
+        }
+        if (!conesOnRows[row] && roller.dx !== 0) {
+          roller.stop();
+        }
+      }
+    }
+  }
+
+  private checkIsGameOver(): boolean {
+    const width = this.tileEngine.width;
+    const height = this.tileEngine.height;
+    const totalTileCount = width * height;
+    let asphaltTileCount = 0;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const tile = this.tileEngine.tileAtLayer('ground', { row: y, col: x });
+        if (tile === 1) {
+          asphaltTileCount++;
+        }
+      }
+    }
+
+    if (asphaltTileCount >= totalTileCount - 2) {
+      return true;
+    }
+
+    return false;
   }
 
   private pave(roller: Roller): void {
@@ -171,38 +247,52 @@ export class Level {
     }
   }
 
+  private getConeCountForAttack(): number {
+    const n = this.attackCount;
+
+    if (n <= 2) {
+      return 1;
+    }
+    if (n <= 5) {
+      return 2;
+    }
+    if (n < 10) {
+      return 3;
+    }
+    if (n < 30) {
+      return 4;
+    }
+
+    return 5;
+  }
+
   private attack(): void {
-    // try 10 times
-    for (let i = 0; i < 10; i++) {
-      const pos: GridPosition = {
-        xSquare: this.attackXSquare,
-        ySquare: Math.floor(Math.random() * this.tileEngine.height),
-      };
+    const coneCount = this.getConeCountForAttack();
 
-      const objectAtTile = this.findObject(pos, anyObject);
+    for (let iCone = 0; iCone < coneCount; iCone++) {
+      // try 10 times
+      for (let i = 0; i < 10; i++) {
+        const pos: GridPosition = this.getRandomPosition();
 
-      if (objectAtTile == null || objectAtTile instanceof Plant) {
-        if (objectAtTile instanceof Plant) {
-          objectAtTile.ttl = 0;
-        }
+        const objectAtTile = this.findObject(pos, anyObject);
 
-        const cone = new Cone();
-        this.addObject(cone, pos);
-
-        // Add roller if there isn't one on this row yet.
-        if (!this.rollers[pos.ySquare]) {
-          const newRoller = new Roller();
-          newRoller.setObjectToFollow(cone);
-          this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
-          this.rollers[pos.ySquare] = newRoller;
-        } else {
-          const existingRoller = this.rollers[pos.ySquare];
-          if (existingRoller.dx === 0) {
-            existingRoller.setObjectToFollow(cone);
+        if (objectAtTile == null || objectAtTile instanceof Plant) {
+          if (objectAtTile instanceof Plant) {
+            objectAtTile.ttl = 0;
           }
-        }
 
-        break;
+          const cone = new Cone();
+          this.addObject(cone, pos);
+
+          // Add roller if there isn't one on this row yet.
+          if (!this.rollers[pos.ySquare]) {
+            const newRoller = new Roller();
+            this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
+            this.rollers[pos.ySquare] = newRoller;
+          }
+
+          break;
+        }
       }
     }
   }
@@ -308,5 +398,12 @@ export class Level {
 
   private isInside(x: number, y: number): boolean {
     return 0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight;
+  }
+
+  private getRandomPosition(): GridPosition {
+    return {
+      xSquare: Math.floor(Math.random() * this.tileEngine.width),
+      ySquare: Math.floor(Math.random() * this.tileEngine.height),
+    };
   }
 }
