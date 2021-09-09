@@ -50,25 +50,20 @@ const getAnimations = (): {[name: string] : Animation} => {
 };
 
 export class Roller extends Sprite.class {
-  private objectToFollow: GameObject | undefined;
-
   constructor() {
     super({
       animations: getAnimations(),
     });
   }
 
-  setObjectToFollow(o: GameObject | undefined) {
-    this.objectToFollow = o;
+  move(): void {
     this.dx = -SPEED + Math.random() * 0.01;
     this.playAnimation('rolling');
   }
 
-  update(): void {
-    super.update();
-
-    if (!this.objectToFollow?.isAlive()) {
-      this.objectToFollow = undefined;
+  stop(): void {
+    // When near the edge, go all the way
+    if (this.x > 64) {
       this.dx = 0;
       this.playAnimation('idle');
     }

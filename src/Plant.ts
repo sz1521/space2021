@@ -40,7 +40,7 @@ const infos: Record<Species, PlantInfo> = {
     interval: 6000,
   },
   'vine': {
-    cost: 20,
+    cost: 12,
     glucosis: 0,
   }
 };
