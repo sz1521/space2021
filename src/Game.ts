@@ -141,7 +141,7 @@ export class Game {
   private renderGlucoseLevel(context: CanvasRenderingContext2D) {
     const lastButton = this.buttons[this.buttons.length - 1].bounds;
     const x = lastButton.x + lastButton.width + 50;
-    const y = 40;
+    const y = 35;
     context.fillStyle = 'rgb(0, 200, 0)';
     context.font = '1rem Sans-serif';
     context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
