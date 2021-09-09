@@ -83,6 +83,7 @@ export class Level {
   private attackAdvanceTime: number = performance.now();
 
   glucoseLevel: number = 0;
+  score: number = 0;
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -151,6 +152,7 @@ export class Level {
           if (cone) {
             o.startGrabbing();
             cone.grab();
+            this.score += 1;
           }
         }
       }

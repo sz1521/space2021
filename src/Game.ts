@@ -116,6 +116,7 @@ export class Game {
     }
 
     this.renderGlucoseLevel(context);
+    this.renderScore(context);
 
     context.restore();
   }
@@ -145,5 +146,13 @@ export class Game {
     context.fillStyle = 'rgb(0, 200, 0)';
     context.font = '30px Sans-serif';
     context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
+  }
+
+  private renderScore(context: CanvasRenderingContext2D) {
+    const x = 600;
+    const y = 40;
+    context.fillStyle = 'orange';
+    context.font = '30px Sans-serif';
+    context.fillText('Score: ' + this.level.score, x, y);
   }
 }
