@@ -39,8 +39,8 @@ const getAnimations = (): {[name: string] : Animation} => {
           frames: [0],
         },
         rolling: {
-          frames: [0, 1],
-          frameRate: 1,
+          frames: [0, 1, 2, 3],
+          frameRate: 2,
         },
       },
     });

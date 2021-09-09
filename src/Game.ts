@@ -122,16 +122,16 @@ export class Game {
 
   private renderButton(context: CanvasRenderingContext2D, button: Button) {
     const bounds = button.bounds;
-    context.fillStyle = button.species === this.selectedSpecies ? 'green' : 'red';
+    context.fillStyle = button.species === this.selectedSpecies ? 'green' : 'rgb(50, 50, 50)';
     context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
     context.fillStyle = 'white';
-    context.font = '22px Sans-serif';
+    context.font = '1rem Sans-serif';
     context.fillText(button.text, bounds.x + 17, bounds.y + 30);
 
     const cost = getCost(button.species);
     context.fillStyle = (cost <= this.level.glucoseLevel) ? 'rgb(0, 255, 0)' : 'rgb(0, 100, 0)';
-    context.font = 'bold 19px Sans-serif';
+    context.font = 'bold 1rem Sans-serif';
     context.fillText(
       cost.toString(),
       bounds.x + bounds.width - 25,
@@ -143,7 +143,7 @@ export class Game {
     const x = lastButton.x + lastButton.width + 50;
     const y = 40;
     context.fillStyle = 'rgb(0, 200, 0)';
-    context.font = '30px Sans-serif';
+    context.font = '1rem Sans-serif';
     context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
   }
 }
