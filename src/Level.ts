@@ -86,6 +86,7 @@ export class Level {
   private attackXSquare: number;
   private attackStartTime: number = performance.now();
   private attackAdvanceTime: number = performance.now();
+  private lastRollerCheckTime: number = performance.now();
 
   private lastEndingConditionCheck: number = performance.now();
   private state: State = State.Running;
@@ -158,6 +159,11 @@ export class Level {
       this.attackXSquare -= 1;
     }
 
+    if (now - this.lastRollerCheckTime > 200) {
+      this.lastRollerCheckTime = now;
+      this.checkRollersMovement();
+    }
+
     for (const o of this.gameObjects) {
       o.update();
 
@@ -185,7 +191,35 @@ export class Level {
     this.gameObjects = this.gameObjects.filter(o => o.isAlive());
   }
 
-  checkIsGameOver(): boolean {
+  private checkRollersMovement() {
+    const rowCount = this.tileEngine.height;
+    const rowHeight = this.tileEngine.tileheight;
+    const conesOnRows = new Array<boolean>(rowCount).fill(false);
+
+    // Find which rows have at least one cone in them.
+    for (const o of this.gameObjects) {
+      if (o instanceof Cone) {
+        const bounds = this.getSquareBounds(o);
+        const row = Math.floor(bounds.y / rowHeight);
+        conesOnRows[row] = true;
+      }
+    }
+
+    // Update rollers movement based on if there are cones.
+    for (let row = 0; row < rowCount; row++) {
+      const roller = this.rollers[row];
+      if (roller) {
+        if (conesOnRows[row] && roller.dx === 0) {
+          roller.move();
+        }
+        if (!conesOnRows[row] && roller.dx !== 0) {
+          roller.stop();
+        }
+      }
+    }
+  }
+
+  private checkIsGameOver(): boolean {
     const width = this.tileEngine.width;
     const height = this.tileEngine.height;
     const totalTileCount = width * height;
@@ -240,14 +274,8 @@ export class Level {
         // Add roller if there isn't one on this row yet.
         if (!this.rollers[pos.ySquare]) {
           const newRoller = new Roller();
-          newRoller.setObjectToFollow(cone);
           this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
           this.rollers[pos.ySquare] = newRoller;
-        } else {
-          const existingRoller = this.rollers[pos.ySquare];
-          if (existingRoller.dx === 0) {
-            existingRoller.setObjectToFollow(cone);
-          }
         }
 
         break;
