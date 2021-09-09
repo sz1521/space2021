@@ -45,8 +45,7 @@ const map =
 const TILE_WIDTH = 32;
 const TILE_HEIGHT = 16;
 
-const ATTACK_INTERVAL = 3000;
-const ATTACK_ADVANCE_INTERVAL = 6000;
+const ATTACK_WAVE_INTERVAL = 10000;
 
 interface GridPosition {
   xSquare: number;
@@ -83,9 +82,8 @@ export class Level {
   private gameObjects: GameObject[] = [];
   private rollers: Array<Roller>;
 
-  private attackXSquare: number;
+  private attackCount: number = 0;
   private attackStartTime: number = performance.now();
-  private attackAdvanceTime: number = performance.now();
   private lastRollerCheckTime: number = performance.now();
 
   private lastEndingConditionCheck: number = performance.now();
@@ -114,9 +112,9 @@ export class Level {
     });
 
     this.rollers = new Array<Roller>(this.tileEngine.height);
-    this.attackXSquare = this.tileEngine.width - 3;
 
     this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
+    this.addObject(new Plant('blue_flower'), { xSquare: 3, ySquare: 8 });
   }
 
   isGameOver(): boolean {
@@ -149,14 +147,10 @@ export class Level {
       }
     }
 
-    if (now - this.attackStartTime > ATTACK_INTERVAL) {
+    if (now - this.attackStartTime > ATTACK_WAVE_INTERVAL) {
       this.attackStartTime = now;
+      this.attackCount += 1;
       this.attack();
-    }
-
-    if (this.attackXSquare > 0 && now - this.attackAdvanceTime > ATTACK_ADVANCE_INTERVAL) {
-      this.attackAdvanceTime = now;
-      this.attackXSquare -= 1;
     }
 
     if (now - this.lastRollerCheckTime > 200) {
@@ -253,32 +247,52 @@ export class Level {
     }
   }
 
+  private getConeCountForAttack(): number {
+    const n = this.attackCount;
+
+    if (n <= 2) {
+      return 1;
+    }
+    if (n <= 5) {
+      return 2;
+    }
+    if (n < 10) {
+      return 3;
+    }
+    if (n < 30) {
+      return 4;
+    }
+
+    return 5;
+  }
+
   private attack(): void {
-    // try 10 times
-    for (let i = 0; i < 10; i++) {
-      const pos: GridPosition = {
-        xSquare: this.attackXSquare,
-        ySquare: Math.floor(Math.random() * this.tileEngine.height),
-      };
+    const coneCount = this.getConeCountForAttack();
 
-      const objectAtTile = this.findObject(pos, anyObject);
+    for (let iCone = 0; iCone < coneCount; iCone++) {
+      // try 10 times
+      for (let i = 0; i < 10; i++) {
+        const pos: GridPosition = this.getRandomPosition();
 
-      if (objectAtTile == null || objectAtTile instanceof Plant) {
-        if (objectAtTile instanceof Plant) {
-          objectAtTile.ttl = 0;
+        const objectAtTile = this.findObject(pos, anyObject);
+
+        if (objectAtTile == null || objectAtTile instanceof Plant) {
+          if (objectAtTile instanceof Plant) {
+            objectAtTile.ttl = 0;
+          }
+
+          const cone = new Cone();
+          this.addObject(cone, pos);
+
+          // Add roller if there isn't one on this row yet.
+          if (!this.rollers[pos.ySquare]) {
+            const newRoller = new Roller();
+            this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
+            this.rollers[pos.ySquare] = newRoller;
+          }
+
+          break;
         }
-
-        const cone = new Cone();
-        this.addObject(cone, pos);
-
-        // Add roller if there isn't one on this row yet.
-        if (!this.rollers[pos.ySquare]) {
-          const newRoller = new Roller();
-          this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
-          this.rollers[pos.ySquare] = newRoller;
-        }
-
-        break;
       }
     }
   }
@@ -384,5 +398,12 @@ export class Level {
 
   private isInside(x: number, y: number): boolean {
     return 0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight;
+  }
+
+  private getRandomPosition(): GridPosition {
+    return {
+      xSquare: Math.floor(Math.random() * this.tileEngine.width),
+      ySquare: Math.floor(Math.random() * this.tileEngine.height),
+    };
   }
 }
