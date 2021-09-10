@@ -85,7 +85,9 @@ const PATTERNS: { [count: number]: GridPosition[]; maxCount: number } = {
   2: [{ xSquare: 2, ySquare: 0 }],
   3: [{ xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
   4: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 2, ySquare: 0 }],
-  maxCount: 4,
+  5: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
+  6: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: -1, ySquare: 1 }, { xSquare: 0, ySquare: 1 }, { xSquare: 1, ySquare: 1 }],
+  maxCount: 6,
 };
 
 interface SquareInfo {
@@ -276,11 +278,14 @@ export class Level {
     if (n < 10) {
       return 3;
     }
-    if (n < 30) {
+    if (n < 15) {
       return 4;
     }
+    if (n < 20) {
+      return 5;
+    }
 
-    return 5;
+    return 6;
   }
 
   private attack(): void {
