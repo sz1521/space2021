@@ -80,6 +80,19 @@ enum State {
   GameOver,
 }
 
+const PATTERNS: { [count: number]: GridPosition[]; maxCount: number } = {
+  1: [],
+  2: [{ xSquare: 2, ySquare: 0 }],
+  3: [{ xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
+  4: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 2, ySquare: 0 }],
+  maxCount: 4,
+};
+
+interface SquareInfo {
+  pos: GridPosition;
+  obj: GameObject | undefined;
+}
+
 export class Level {
   private tileEngine: TileEngine;
 
@@ -277,22 +290,43 @@ export class Level {
       return;
     }
 
-    const freeTiles = availableTiles.map((pos) => ({
+    const freeTiles: SquareInfo[] = availableTiles.map((pos) => ({
       pos,
       obj: this.findObject(pos, anyObject),
     })).filter(({ obj }) => obj == null || obj instanceof Plant);
 
     const coneCount = Math.min(freeTiles.length, this.getConeCountForAttack());
 
-    for (let iCone = 0; iCone < coneCount; iCone++) {
-      const square = getRandomElement(freeTiles);
+    if (coneCount === 0) {
+      return;
+    }
 
+    const pattern = PATTERNS[Math.min(coneCount, PATTERNS.maxCount)];
+    let attackSquares = this.getAttackSquares(pattern, freeTiles);
+
+    for (const square of attackSquares) {
       if (square.obj instanceof Plant) {
         square.obj.ttl = 0;
       }
 
       this.insertCone(square.pos);
     }
+  }
+
+  private getAttackSquares(pattern: Array<GridPosition>, freeTiles: SquareInfo[]): SquareInfo[] {
+    const first = getRandomElement(freeTiles);
+    const firstPos = first.pos;
+    const attackSquares: SquareInfo[] = [first];
+
+    for (const pat of pattern) {
+      const matchingSquare = freeTiles.find((p) =>
+        p.pos.xSquare === firstPos.xSquare + pat.xSquare && p.pos.ySquare === firstPos.ySquare + pat.ySquare);
+      if (matchingSquare) {
+        attackSquares.push(matchingSquare);
+      }
+    }
+
+    return attackSquares;
   }
 
   private insertCone(pos: GridPosition): void {
