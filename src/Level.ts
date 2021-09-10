@@ -66,6 +66,10 @@ export const isInside = (point: { x: number; y: number }, bounds: SquareBounds):
     point.y < bounds.y + bounds.height;
 };
 
+function getRandomElement<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 type ObjectSelector = (o: GameObject) => boolean;
 
 const anyObject: ObjectSelector = () => true;
@@ -74,6 +78,21 @@ const otherThanRoller: ObjectSelector = (o) => !(o instanceof Roller);
 enum State {
   Running,
   GameOver,
+}
+
+const PATTERNS: { [count: number]: GridPosition[]; maxCount: number } = {
+  1: [],
+  2: [{ xSquare: 2, ySquare: 0 }],
+  3: [{ xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
+  4: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 2, ySquare: 0 }],
+  5: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
+  6: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: -1, ySquare: 1 }, { xSquare: 0, ySquare: 1 }, { xSquare: 1, ySquare: 1 }],
+  maxCount: 6,
+};
+
+interface SquareInfo {
+  pos: GridPosition;
+  obj: GameObject | undefined;
 }
 
 export class Level {
@@ -147,7 +166,7 @@ export class Level {
       }
     }
 
-    if (now - this.attackStartTime > ATTACK_WAVE_INTERVAL) {
+    if (this.state !== State.GameOver && now - this.attackStartTime > ATTACK_WAVE_INTERVAL) {
       this.attackStartTime = now;
       this.attackCount += 1;
       this.attack();
@@ -259,42 +278,95 @@ export class Level {
     if (n < 10) {
       return 3;
     }
-    if (n < 30) {
+    if (n < 15) {
       return 4;
     }
+    if (n < 20) {
+      return 5;
+    }
 
-    return 5;
+    return 6;
   }
 
   private attack(): void {
-    const coneCount = this.getConeCountForAttack();
+    const availableTiles = this.getAvailableTilesInFrontOfRollers();
 
-    for (let iCone = 0; iCone < coneCount; iCone++) {
-      // try 10 times
-      for (let i = 0; i < 10; i++) {
-        const pos: GridPosition = this.getRandomPosition();
+    if (availableTiles.length === 0) {
+      return;
+    }
 
-        const objectAtTile = this.findObject(pos, anyObject);
+    const freeTiles: SquareInfo[] = availableTiles.map((pos) => ({
+      pos,
+      obj: this.findObject(pos, anyObject),
+    })).filter(({ obj }) => obj == null || obj instanceof Plant);
 
-        if (objectAtTile == null || objectAtTile instanceof Plant) {
-          if (objectAtTile instanceof Plant) {
-            objectAtTile.ttl = 0;
-          }
+    const coneCount = Math.min(freeTiles.length, this.getConeCountForAttack());
 
-          const cone = new Cone();
-          this.addObject(cone, pos);
+    if (coneCount === 0) {
+      return;
+    }
 
-          // Add roller if there isn't one on this row yet.
-          if (!this.rollers[pos.ySquare]) {
-            const newRoller = new Roller();
-            this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
-            this.rollers[pos.ySquare] = newRoller;
-          }
+    const pattern = PATTERNS[Math.min(coneCount, PATTERNS.maxCount)];
+    let attackSquares = this.getAttackSquares(pattern, freeTiles);
 
-          break;
-        }
+    for (const square of attackSquares) {
+      if (square.obj instanceof Plant) {
+        square.obj.ttl = 0;
+      }
+
+      this.insertCone(square.pos);
+    }
+  }
+
+  private getAttackSquares(pattern: Array<GridPosition>, freeTiles: SquareInfo[]): SquareInfo[] {
+    const first = getRandomElement(freeTiles);
+    const firstPos = first.pos;
+    const attackSquares: SquareInfo[] = [first];
+
+    for (const pat of pattern) {
+      const matchingSquare = freeTiles.find((p) =>
+        p.pos.xSquare === firstPos.xSquare + pat.xSquare && p.pos.ySquare === firstPos.ySquare + pat.ySquare);
+      if (matchingSquare) {
+        attackSquares.push(matchingSquare);
       }
     }
+
+    return attackSquares;
+  }
+
+  private insertCone(pos: GridPosition): void {
+    const cone = new Cone();
+    this.addObject(cone, pos);
+
+    // Add roller if there isn't one on this row yet.
+    if (!this.rollers[pos.ySquare]) {
+      const newRoller = new Roller();
+      this.addObject(newRoller, { xSquare: this.tileEngine.width, ySquare: pos.ySquare });
+      this.rollers[pos.ySquare] = newRoller;
+    }
+  }
+
+  private getAvailableTilesInFrontOfRollers(): GridPosition[] {
+    const width = this.tileEngine.width;
+    const height = this.tileEngine.height;
+    const result: GridPosition[] = [];
+
+    for (let y = 0; y < height; y++) {
+      let freeCount = width - 2;
+
+      const roller = this.rollers[y];
+      if (roller) {
+        const bounds = this.getSquareBounds(roller);
+        const gridPos = this.toGridPosition(bounds.x, bounds.y);
+        freeCount = Math.max(0, gridPos.xSquare);
+      }
+
+      for (let x = 0; x < freeCount; x++) {
+        result.push({ xSquare: x, ySquare: y });
+      }
+    }
+
+    return result;
   }
 
   render(): void {
@@ -398,12 +470,5 @@ export class Level {
 
   private isInside(x: number, y: number): boolean {
     return 0 <= x && x < this.tileEngine.mapwidth && 0 <= y && y < this.tileEngine.mapheight;
-  }
-
-  private getRandomPosition(): GridPosition {
-    return {
-      xSquare: Math.floor(Math.random() * this.tileEngine.width),
-      ySquare: Math.floor(Math.random() * this.tileEngine.height),
-    };
   }
 }

@@ -35,7 +35,7 @@ export interface PlantInfo {
 
 const infos: Record<Species, PlantInfo> = {
   'blue_flower': {
-    cost: 2,
+    cost: 4,
     glucosis: 1,
     interval: 6000,
   },
