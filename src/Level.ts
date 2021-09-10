@@ -277,24 +277,21 @@ export class Level {
       return;
     }
 
-    const coneCount = Math.min(availableTiles.length, this.getConeCountForAttack());
+    const freeTiles = availableTiles.map((pos) => ({
+      pos,
+      obj: this.findObject(pos, anyObject),
+    })).filter(({ obj }) => obj == null || obj instanceof Plant);
+
+    const coneCount = Math.min(freeTiles.length, this.getConeCountForAttack());
 
     for (let iCone = 0; iCone < coneCount; iCone++) {
-      // try 10 times
-      for (let i = 0; i < 10; i++) {
-        const pos: GridPosition = getRandomElement(availableTiles);
+      const square = getRandomElement(freeTiles);
 
-        const objectAtTile = this.findObject(pos, anyObject);
-
-        if (objectAtTile == null || objectAtTile instanceof Plant) {
-          if (objectAtTile instanceof Plant) {
-            objectAtTile.ttl = 0;
-          }
-
-          this.insertCone(pos);
-          break;
-        }
+      if (square.obj instanceof Plant) {
+        square.obj.ttl = 0;
       }
+
+      this.insertCone(square.pos);
     }
   }
 
