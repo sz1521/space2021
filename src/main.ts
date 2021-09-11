@@ -31,6 +31,14 @@ const { canvas, context } = init();
 (context as any).mozImageSmoothingEnabled = false;
 context.imageSmoothingEnabled = false;
 
+const resize = () => {
+  canvas.width = window.innerWidth - 10;
+  canvas.height = window.innerHeight - 10;
+};
+
+window.addEventListener("resize", resize, false);
+resize();
+
 const createTextScreenLoop = (text: string): GameLoop => {
   return GameLoop({
     update: (): void => {
