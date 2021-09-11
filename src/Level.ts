@@ -52,6 +52,13 @@ interface GridPosition {
   ySquare: number;
 }
 
+interface RelativePosition {
+  xRel: number;
+  yRel: number;
+}
+
+type Pattern = RelativePosition[];
+
 export interface SquareBounds {
   x: number;
   y: number;
@@ -80,13 +87,39 @@ enum State {
   GameOver,
 }
 
-const PATTERNS: { [count: number]: GridPosition[]; maxCount: number } = {
-  1: [],
-  2: [{ xSquare: 2, ySquare: 0 }],
-  3: [{ xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
-  4: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 2, ySquare: 0 }],
-  5: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: 0, ySquare: -1 }, { xSquare: 0, ySquare: 1 }],
-  6: [{ xSquare: -1, ySquare: 0 }, { xSquare: 1, ySquare: 0 }, { xSquare: -1, ySquare: 1 }, { xSquare: 0, ySquare: 1 }, { xSquare: 1, ySquare: 1 }],
+const PATTERNS: { [count: number]: Pattern; maxCount: number } = {
+  1: [
+    { xRel: 0, yRel: 0 },
+  ],
+  2: [
+    { xRel: 0, yRel: 0 },
+    { xRel: 2, yRel: 0 },
+  ],
+  3: [
+    { xRel: 0, yRel: 0 },
+    { xRel: 0, yRel: -1 },
+    { xRel: 0, yRel: 1 }],
+  4: [
+    { xRel: 0, yRel: 0 },
+    { xRel: -1, yRel: 0 },
+    { xRel: 1, yRel: 0 },
+    { xRel: 2, yRel: 0 }
+  ],
+  5: [
+    { xRel: 0, yRel: 0 },
+    { xRel: -1, yRel: 0 },
+    { xRel: 1, yRel: 0 },
+    { xRel: 0, yRel: -1 },
+    { xRel: 0, yRel: 1 }
+  ],
+  6: [
+    { xRel: 0, yRel: 0 },
+    { xRel: -1, yRel: 0 },
+    { xRel: 1, yRel: 0 },
+    { xRel: -1, yRel: 1 },
+    { xRel: 0, yRel: 1 },
+    { xRel: 1, yRel: 1 }
+  ],
   maxCount: 6,
 };
 
@@ -306,7 +339,7 @@ export class Level {
       return;
     }
 
-    const pattern = PATTERNS[Math.min(coneCount, PATTERNS.maxCount)];
+    const pattern: Pattern = PATTERNS[Math.min(coneCount, PATTERNS.maxCount)];
     let attackSquares = this.getAttackSquares(pattern, freeTiles);
 
     for (const square of attackSquares) {
@@ -318,14 +351,13 @@ export class Level {
     }
   }
 
-  private getAttackSquares(pattern: Array<GridPosition>, freeTiles: SquareInfo[]): SquareInfo[] {
-    const first = getRandomElement(freeTiles);
-    const firstPos = first.pos;
-    const attackSquares: SquareInfo[] = [first];
+  private getAttackSquares(pattern: Pattern, freeTiles: SquareInfo[]): SquareInfo[] {
+    const anchor = getRandomElement(freeTiles).pos;
+    const attackSquares: SquareInfo[] = [];
 
     for (const pat of pattern) {
       const matchingSquare = freeTiles.find((p) =>
-        p.pos.xSquare === firstPos.xSquare + pat.xSquare && p.pos.ySquare === firstPos.ySquare + pat.ySquare);
+        p.pos.xSquare === anchor.xSquare + pat.xRel && p.pos.ySquare === anchor.ySquare + pat.yRel);
       if (matchingSquare) {
         attackSquares.push(matchingSquare);
       }
@@ -352,7 +384,7 @@ export class Level {
     const result: GridPosition[] = [];
 
     for (let y = 0; y < height; y++) {
-      let freeCount = width - 2;
+      let freeCount = width - 1;
 
       const roller = this.rollers[y];
       if (roller) {
