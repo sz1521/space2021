@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { init, load, GameLoop } from "kontra";
+import { init, load, GameLoop, imageAssets } from "kontra";
 import { Game } from "./Game";
 import { playSong, renderSong } from "./sfx";
 
@@ -38,9 +38,18 @@ const createTextScreenLoop = (text: string): GameLoop => {
 
     render: (): void => {
       context.save();
-      context.fillStyle = 'White';
-      context.font = '30px Sans-serif';
-      context.fillText(text, 100, 100);
+      context.fillStyle = 'rgb(00,120,00)';
+      context.font = 'bold 60px impact ';
+      context.fillText("GREEN SPACE", 320, 200);
+      context.strokeStyle  = 'rgb(00,255,00)';
+      context.strokeText("GREEN SPACE", 320, 200);
+      context.fillStyle = 'rgb(10,10,10)';
+      context.fillText("vs parking", 330, 240);
+      context.strokeStyle  = 'darkgrey';
+      context.strokeText("vs parking", 330, 240);
+      context.fillStyle = 'white';
+      context.font = 'bold 30px Sans-serif';
+      context.fillText(text, 350, 300);
       context.restore();
     },
   })
@@ -54,7 +63,6 @@ load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png', 'roller.png').then(
   const tune = renderSong();
 
   startScreenLoop?.stop();
-
   startScreenLoop = createTextScreenLoop("CLICK TO START");
   startScreenLoop.start();
 
