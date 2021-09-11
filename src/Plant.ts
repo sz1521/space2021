@@ -142,6 +142,10 @@ export class Plant extends Sprite.class {
   }
 
   getGlucose(): number {
+    if (!this.isAlive()) {
+      return 0;
+    }
+
     const interval = infos[this.species].interval;
     if (interval == null) {
       return 0;
@@ -157,7 +161,7 @@ export class Plant extends Sprite.class {
   }
 
   canGrab(): boolean {
-    return this.species === 'vine' && this.state.type !== 'grabbing';
+    return this.isAlive() && this.species === 'vine' && this.state.type !== 'grabbing';
   }
 
   startGrabbing(): void {
