@@ -45,7 +45,7 @@ const map =
 const TILE_WIDTH = 32;
 const TILE_HEIGHT = 16;
 
-const ATTACK_WAVE_INTERVAL = 10000;
+const ATTACK_WAVE_INTERVAL = 15000;
 
 interface GridPosition {
   xSquare: number;
@@ -87,23 +87,23 @@ enum State {
   GameOver,
 }
 
-const PATTERNS: { [count: number]: Pattern; maxCount: number } = {
+const PATTERNS: { [level: number]: Pattern; maxLevel: number } = {
   1: [
     { xRel: 0, yRel: 0 },
   ],
   2: [
     { xRel: 0, yRel: 0 },
-    { xRel: 2, yRel: 0 },
+    { xRel: 0, yRel: 2 },
   ],
   3: [
+    { xRel: -2, yRel: 0 },
     { xRel: 0, yRel: 0 },
-    { xRel: 0, yRel: -1 },
-    { xRel: 0, yRel: 1 }],
+    { xRel: 2, yRel: 0 }],
   4: [
-    { xRel: 0, yRel: 0 },
+    { xRel: 0, yRel: -1 },
     { xRel: -1, yRel: 0 },
-    { xRel: 1, yRel: 0 },
-    { xRel: 2, yRel: 0 }
+    { xRel: 0, yRel: 1 },
+    { xRel: -1, yRel: 2 }
   ],
   5: [
     { xRel: 0, yRel: 0 },
@@ -113,14 +113,17 @@ const PATTERNS: { [count: number]: Pattern; maxCount: number } = {
     { xRel: 0, yRel: 1 }
   ],
   6: [
-    { xRel: 0, yRel: 0 },
+    { xRel: -1, yRel: -1 },
     { xRel: -1, yRel: 0 },
-    { xRel: 1, yRel: 0 },
     { xRel: -1, yRel: 1 },
+    { xRel: 0, yRel: -1 },
+    { xRel: 0, yRel: 0 },
     { xRel: 0, yRel: 1 },
-    { xRel: 1, yRel: 1 }
+    { xRel: 1, yRel: -1 },
+    { xRel: 1, yRel: 0 },
+    { xRel: 1, yRel: 1 },
   ],
-  maxCount: 6,
+  maxLevel: 6,
 };
 
 interface SquareInfo {
@@ -329,7 +332,7 @@ export class Level {
     }
   }
 
-  private getConeCountForAttack(): number {
+  private getAttackLevel(): number {
     const n = this.attackCount;
 
     if (n <= 2) {
@@ -338,13 +341,13 @@ export class Level {
     if (n <= 5) {
       return 2;
     }
-    if (n < 10) {
+    if (n < 8) {
       return 3;
     }
-    if (n < 15) {
+    if (n < 10) {
       return 4;
     }
-    if (n < 20) {
+    if (n < 13) {
       return 5;
     }
 
@@ -363,13 +366,13 @@ export class Level {
       obj: this.findObject(pos, anyObject),
     })).filter(({ obj }) => obj == null || obj instanceof Plant);
 
-    const coneCount = Math.min(freeTiles.length, this.getConeCountForAttack());
+    const level = Math.min(freeTiles.length, this.getAttackLevel());
 
-    if (coneCount === 0) {
+    if (level === 0) {
       return;
     }
 
-    const pattern: Pattern = PATTERNS[Math.min(coneCount, PATTERNS.maxCount)];
+    const pattern: Pattern = PATTERNS[Math.min(level, PATTERNS.maxLevel)];
     let attackSquares = this.getAttackSquares(pattern, freeTiles);
 
     for (const square of attackSquares) {
