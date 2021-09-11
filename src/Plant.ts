@@ -128,6 +128,10 @@ export class Plant extends Sprite.class {
   }
 
   private renderGlucose(context: CanvasRenderingContext2D): void {
+    if (this.lastPhotosynthesisTime === 0) {
+      return;
+    }
+
     const now = performance.now();
     const timeSincePhotoSynthesis = now - this.lastPhotosynthesisTime;
     if (timeSincePhotoSynthesis < 1000) {
