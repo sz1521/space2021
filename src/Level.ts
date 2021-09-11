@@ -373,9 +373,21 @@ export class Level {
     }
 
     const pattern: Pattern = PATTERNS[Math.min(level, PATTERNS.maxLevel)];
-    let attackSquares = this.getAttackSquares(pattern, freeTiles);
+    let bestAttack: SquareInfo[] = [];
+    let bestValue: number = 0;
 
-    for (const square of attackSquares) {
+    for (let i = 0; i < 10; i++) {
+      const anchor = getRandomElement(freeTiles).pos;
+      let squares = this.getAttackSquares(pattern, anchor, freeTiles);
+      let value = this.evaluateAttackSquares(squares);
+
+      if (value > bestValue) {
+        bestAttack = squares;
+        bestValue = value;
+      }
+    }
+
+    for (const square of bestAttack) {
       if (square.obj instanceof Plant) {
         square.obj.ttl = 0;
       }
@@ -384,8 +396,11 @@ export class Level {
     }
   }
 
-  private getAttackSquares(pattern: Pattern, freeTiles: SquareInfo[]): SquareInfo[] {
-    const anchor = getRandomElement(freeTiles).pos;
+  private evaluateAttackSquares(squares: SquareInfo[]): number {
+    return squares.reduce((total, current) => total + (current.obj ? 3 : 1), 0);
+  }
+
+  private getAttackSquares(pattern: Pattern, anchor: GridPosition, freeTiles: SquareInfo[]): SquareInfo[] {
     const attackSquares: SquareInfo[] = [];
 
     for (const pat of pattern) {
