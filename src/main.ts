@@ -22,22 +22,14 @@
  * SOFTWARE.
  */
 
-import { init, load, GameLoop, imageAssets } from "kontra";
+import { init, load, GameLoop } from "kontra";
 import { Game } from "./Game";
 import { playSong, renderSong } from "./sfx";
 
-const { canvas, context } = init();
+const { context } = init();
 (context as any).webkitImageSmoothingEnabled = false;
 (context as any).mozImageSmoothingEnabled = false;
 context.imageSmoothingEnabled = false;
-
-const resize = () => {
-  canvas.width = window.innerWidth - 10;
-  canvas.height = window.innerHeight - 10;
-};
-
-window.addEventListener("resize", resize, false);
-resize();
 
 const createTextScreenLoop = (text: string): GameLoop => {
   return GameLoop({
