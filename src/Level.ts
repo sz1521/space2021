@@ -194,6 +194,7 @@ export class Level {
 
     this.addObject(new Plant('blue_flower'), { xSquare: 2, ySquare: 2 });
     this.addObject(new Plant('blue_flower'), { xSquare: 3, ySquare: 8 });
+    this.addObject(new Plant('blue_flower'), { xSquare: 7, ySquare: 5 });
   }
 
   isGameOver(): boolean {
