@@ -93,35 +93,51 @@ const PATTERNS: { [level: number]: Pattern; maxLevel: number } = {
   ],
   2: [
     { xRel: 0, yRel: 0 },
-    { xRel: 0, yRel: 2 },
+    { xRel: 0, yRel: 1 },
   ],
   3: [
     { xRel: -2, yRel: 0 },
     { xRel: 0, yRel: 0 },
-    { xRel: 2, yRel: 0 }],
+    { xRel: 2, yRel: 0 },
+  ],
   4: [
-    { xRel: 0, yRel: -1 },
-    { xRel: -1, yRel: 0 },
-    { xRel: 0, yRel: 1 },
-    { xRel: -1, yRel: 2 }
+    { xRel: 0, yRel: -2 },
+    { xRel: -1, yRel: -1 },
+    { xRel: 0, yRel: 0 },
+    { xRel: -1, yRel: 1 },
+    { xRel: 0, yRel: 2 },
   ],
   5: [
-    { xRel: 0, yRel: 0 },
+    { xRel: -2, yRel: 0 },
+    { xRel: -2, yRel: 1 },
     { xRel: -1, yRel: 0 },
+    { xRel: -1, yRel: 1 },
+    { xRel: 0, yRel: 0 },
+    { xRel: 0, yRel: 1 },
     { xRel: 1, yRel: 0 },
-    { xRel: 0, yRel: -1 },
-    { xRel: 0, yRel: 1 }
+    { xRel: 1, yRel: 1 },
+    { xRel: 2, yRel: 0 },
+    { xRel: 2, yRel: 1 },
   ],
   6: [
+    { xRel: -3, yRel: 0 },
+    { xRel: -3, yRel: 1 },
+    { xRel: -2, yRel: -1 },
+    { xRel: -2, yRel: 0 },
+    { xRel: -2, yRel: 1 },
+    { xRel: -2, yRel: 2 },
+    { xRel: -1, yRel: -2 },
     { xRel: -1, yRel: -1 },
     { xRel: -1, yRel: 0 },
     { xRel: -1, yRel: 1 },
-    { xRel: 0, yRel: -1 },
+    { xRel: -1, yRel: 2 },
+    { xRel: -1, yRel: 3 },
     { xRel: 0, yRel: 0 },
     { xRel: 0, yRel: 1 },
-    { xRel: 1, yRel: -1 },
     { xRel: 1, yRel: 0 },
     { xRel: 1, yRel: 1 },
+    { xRel: 2, yRel: 0 },
+    { xRel: 2, yRel: 1 },
   ],
   maxLevel: 6,
 };
@@ -335,10 +351,10 @@ export class Level {
   private getAttackLevel(): number {
     const n = this.attackCount;
 
-    if (n <= 2) {
+    if (n <= 3) {
       return 1;
     }
-    if (n <= 5) {
+    if (n <= 6) {
       return 2;
     }
     if (n < 8) {
@@ -347,7 +363,7 @@ export class Level {
     if (n < 10) {
       return 4;
     }
-    if (n < 13) {
+    if (n < 15) {
       return 5;
     }
 
