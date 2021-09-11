@@ -128,6 +128,12 @@ interface SquareInfo {
   obj: GameObject | undefined;
 }
 
+interface Highlight {
+  position: GridPosition;
+  radius: number;
+  available: boolean;
+}
+
 export class Level {
   private tileEngine: TileEngine;
 
@@ -141,8 +147,7 @@ export class Level {
   private lastEndingConditionCheck: number = performance.now();
   private state: State = State.Running;
 
-  private highlightSquare: GridPosition | undefined;
-  private highlightRadius: number = 0;
+  private highlight: Highlight | undefined;
 
   glucoseLevel: number = 0;
   score: number = 0;
@@ -194,11 +199,23 @@ export class Level {
 
   onMouseMove(x: number, y: number, selectedSpecies: Species) {
     if (this.isInside(x, y)) {
-      this.highlightSquare = this.toGridPosition(x, y);
-      this.highlightRadius = getRadius(selectedSpecies);
+      const position = this.toGridPosition(x, y);
+      const tile = this.getTile(position);
+      if (tile === 1) {
+        this.highlight = {
+          position,
+          radius: 0,
+          available: false,
+        };
+      } else {
+        this.highlight = {
+          position,
+          radius: getRadius(selectedSpecies),
+          available: true,
+        };
+      }
     } else {
-      this.highlightSquare = undefined;
-      this.highlightRadius = 0;
+      this.highlight = undefined;
     }
   }
 
@@ -429,18 +446,18 @@ export class Level {
   }
 
   private renderHighlight(context: CanvasRenderingContext2D) {
-    if (!this.highlightSquare) {
+    if (!this.highlight) {
       return;
     }
 
-    const r = this.highlightRadius;
-    const x = this.highlightSquare.xSquare * TILE_WIDTH - r * TILE_WIDTH;
-    const y = this.highlightSquare.ySquare * TILE_HEIGHT - r * TILE_HEIGHT;
+    const r = this.highlight.radius;
+    const x = this.highlight.position.xSquare * TILE_WIDTH - r * TILE_WIDTH;
+    const y = this.highlight.position.ySquare * TILE_HEIGHT - r * TILE_HEIGHT;
     const width = TILE_WIDTH + 2 * r * TILE_WIDTH;
     const height = TILE_HEIGHT + 2 * r * TILE_HEIGHT;
 
     context.save();
-    context.fillStyle = 'rgb(0, 255, 0)';
+    context.fillStyle = this.highlight.available ? 'rgb(0, 255, 0)' : 'rgb(255, 0, 0)';
     context.globalAlpha = 0.5;
     context.fillRect(x, y, width, height);
     context.restore();
