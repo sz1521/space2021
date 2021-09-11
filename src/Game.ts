@@ -161,7 +161,7 @@ export class Game {
   }
 
   private renderGameOver(context: CanvasRenderingContext2D) {
-    const x = 200;
+    const x = 280;
     const y = 300;
     context.fillStyle = 'white';
     context.font = 'bold 60px Sans-serif';
