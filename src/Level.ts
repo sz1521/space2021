@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-import { getCost, Plant, Species } from "./Plant";
+import { getCost, getRadius, Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
-import { collides, GameObject, imageAssets, TileEngine } from "kontra";
+import { collides, GameObject, getContext, imageAssets, TileEngine } from "kontra";
 import { Roller } from "./Roller";
 
 const map =
@@ -141,6 +141,9 @@ export class Level {
   private lastEndingConditionCheck: number = performance.now();
   private state: State = State.Running;
 
+  private highlightSquare: GridPosition | undefined;
+  private highlightRadius: number = 0;
+
   glucoseLevel: number = 0;
   score: number = 0;
 
@@ -186,6 +189,16 @@ export class Level {
         this.addObject(new Plant(species), position);
         this.glucoseLevel -= cost;
       }
+    }
+  }
+
+  onMouseMove(x: number, y: number, selectedSpecies: Species) {
+    if (this.isInside(x, y)) {
+      this.highlightSquare = this.toGridPosition(x, y);
+      this.highlightRadius = getRadius(selectedSpecies);
+    } else {
+      this.highlightSquare = undefined;
+      this.highlightRadius = 0;
     }
   }
 
@@ -402,13 +415,35 @@ export class Level {
   }
 
   render(): void {
+    const context = getContext();
     // Sort objects for perspective effect, back-to-front.
     this.gameObjects.sort((a, b) => a.y - b.y);
 
     this.tileEngine.render();
+
+    this.renderHighlight(context);
+
     for (const o of this.gameObjects) {
       o.render();
     }
+  }
+
+  private renderHighlight(context: CanvasRenderingContext2D) {
+    if (!this.highlightSquare) {
+      return;
+    }
+
+    const r = this.highlightRadius;
+    const x = this.highlightSquare.xSquare * TILE_WIDTH - r * TILE_WIDTH;
+    const y = this.highlightSquare.ySquare * TILE_HEIGHT - r * TILE_HEIGHT;
+    const width = TILE_WIDTH + 2 * r * TILE_WIDTH;
+    const height = TILE_HEIGHT + 2 * r * TILE_HEIGHT;
+
+    context.save();
+    context.fillStyle = 'rgb(0, 255, 0)';
+    context.globalAlpha = 0.5;
+    context.fillRect(x, y, width, height);
+    context.restore();
   }
 
   private findObject(position: GridPosition, selector: ObjectSelector): GameObject | undefined {
