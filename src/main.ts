@@ -24,6 +24,7 @@
 
 import { init, load, GameLoop } from "kontra";
 import { Game } from "./Game";
+import { playSong, renderSong } from "./sfx";
 
 const { canvas, context } = init();
 (context as any).webkitImageSmoothingEnabled = false;
@@ -76,7 +77,7 @@ startScreenLoop.start();
 
 load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png', 'roller.png').then(() => {
   game = new Game();
-  // const tune = renderSong();
+  const tune = renderSong();
 
   startScreenLoop?.stop();
   startScreenLoop = createTextScreenLoop("CLICK TO START");
@@ -89,7 +90,7 @@ load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png', 'roller.png').then(
       startScreenLoop.stop();
       startScreenLoop = null;
 
-      // playSong(tune);
+      playSong(tune);
 
       game.start();
     } else {
