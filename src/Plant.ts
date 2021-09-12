@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
-import { Animation, getContext, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { getContext, imageAssets } from "kontra";
 import { easeOutCubic } from "./easings";
+import { GameObject } from "./GameObject";
 
 export type Species = 'blue_flower' | 'vine';
 
@@ -60,55 +61,14 @@ type State =
   { type: 'idle' } |
   { type: 'grabbing', startTime: number };
 
-const spriteSheetConstructors: { [S in Species]: () => SpriteSheet } = {
-  'blue_flower': () => SpriteSheet({
-    image: imageAssets['blue_flower'],
-    frameWidth: 32,
-    frameHeight: 32,
-    animations: {
-      idle: {
-        frames: [0, 1, 2],
-        frameRate: 1,
-      }
-    },
-  }),
-  'vine': () => SpriteSheet({
-    image: imageAssets['vine'],
-    frameWidth: 32,
-    frameHeight: 32,
-    animations: {
-      idle: {
-        frames: [0, 1],
-        frameRate: 1,
-      }
-    },
-  }),
-};
-
-const spriteSheets: { [S in Species]?: SpriteSheet } = {};
-
-const getAnimations = (species: Species): {[name: string] : Animation} => {
-  if (!spriteSheets[species]) {
-    // Assents should be loaded by the time of creating objects.
-    spriteSheets[species] = spriteSheetConstructors[species]();
-  }
-
-  // Strange type error here
-  return (spriteSheets as any)[species].animations;
-}
-
-export class Plant extends Sprite.class {
-
+export class Plant extends GameObject {
   private species: Species;
   private state: State = { type: 'idle' };
   private lastPhotosynthesisTime: number = 0;
 
   constructor(species: Species) {
-    super({
-      animations: getAnimations(species),
-    });
+    super();
     this.species = species;
-    this.playAnimation('idle');
   }
 
   update(): void {
@@ -118,13 +78,17 @@ export class Plant extends Sprite.class {
     }
   }
 
-  draw(): void {
+  render(): void {
     const context = getContext();
-    super.draw();
+
+    context.save();
+    context.translate(this.x, this.y);
+    this.renderImage(context, imageAssets[this.species]);
 
     if (infos[this.species].interval != null) {
       this.renderGlucose(context);
     }
+    context.restore();
   }
 
   private renderGlucose(context: CanvasRenderingContext2D): void {

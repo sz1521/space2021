@@ -22,42 +22,30 @@
  * SOFTWARE.
  */
 
-import { getContext, imageAssets } from "kontra";
-import { GameObject } from "./GameObject";
-import { easeOutBounce } from "./easings";
+export abstract class GameObject {
+  x = 0;
+  y = 0;
+  dx = 0;
+  width = 32;
+  height = 32;
+  ttl: number = Number.POSITIVE_INFINITY;
 
-const FRAMES_PER_SECOND = 60;
-
-export type ConeState = 'idle' | 'grabbed';
-
-export class Cone extends GameObject {
-  state: ConeState = 'idle';
-  dropTime: number = performance.now() + Math.random() * 200;
-  grabTime: number | undefined;
-
-  render(): void {
-    const now = performance.now();
-    const timeSinceDrop = now - this.dropTime;
-    const y = (timeSinceDrop < 1000) ? -10 + easeOutBounce(timeSinceDrop / 1000) * 10 : 0;
-
-    const context = getContext();
-    context.save();
-    context.translate(this.x, this.y);
-    context.translate(0, y);
-    let frame = 0;
-    if (this.grabTime) {
-      const timeSinceGrab = performance.now() - this.grabTime;
-      frame = Math.min(2, 1 + Math.floor(timeSinceGrab / 1000));
-    }
-    this.renderImageFrame(context, imageAssets['cone'], frame);
-    context.restore();
+  update(): void {
+    this.x += this.dx;
+    this.ttl -= 1;
   }
 
-  grab(): void {
-    if (this.state !== 'grabbed') {
-      this.state = 'grabbed';
-      this.ttl = 2 * FRAMES_PER_SECOND;
-      this.grabTime = performance.now();
-    }
+  abstract render(): void;
+
+  isAlive(): boolean {
+    return this.ttl > 0;
+  }
+
+  protected renderImage(context: CanvasRenderingContext2D, image: HTMLImageElement): void {
+    context.drawImage(image, 0, 0);
+  }
+
+  protected renderImageFrame(context: CanvasRenderingContext2D, image: HTMLImageElement, frame: number): void {
+    context.drawImage(image, frame * 32, 0, 32, 32, 0, 0, 32, 32);
   }
 }

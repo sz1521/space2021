@@ -24,9 +24,10 @@
 
 import { getCost, getRadius, Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
-import { collides, GameObject, getContext, imageAssets, TileEngine } from "kontra";
+import { collides, getContext, imageAssets, TileEngine } from "kontra";
 import { Roller } from "./Roller";
 import { DESTROYCONE, DESTROYPLANT, PLANTFLOWER, PLANTVINE, playEffect } from "./fx";
+import { GameObject } from "./GameObject";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -329,8 +330,9 @@ export class Level {
         }
 
         if (o.canGrab()) {
-          const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
-          if (cone) {
+          const grabbed = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
+          if (grabbed) {
+            const cone = grabbed as Cone;
             o.startGrabbing();
             cone.grab();
             playEffect(DESTROYCONE);
@@ -530,8 +532,17 @@ export class Level {
 
   render(): void {
     const context = getContext();
+
     // Sort objects for perspective effect, back-to-front.
-    this.gameObjects.sort((a, b) => a.y - b.y);
+    this.gameObjects.sort((a: GameObject, b: GameObject) => {
+      const diff = a.y - b.y;
+      if (diff === 0) {
+        // Rollers always in front.
+        return a instanceof Roller ? 1 : -1;
+      } else {
+        return diff;
+      }
+    });
 
     this.tileEngine.render();
 
