@@ -22,50 +22,28 @@
  * SOFTWARE.
  */
 
-import { Animation, GameObject, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { getContext, imageAssets } from "kontra";
+import { GameObject } from "./GameObject";
 
 const SPEED = 0.1;
 
-let spriteSheet: SpriteSheet | undefined;
-
-const getAnimations = (): {[name: string] : Animation} => {
-  if (! spriteSheet) {
-    spriteSheet = SpriteSheet({
-      image: imageAssets['roller'],
-      frameWidth: 32,
-      frameHeight: 32,
-      animations: {
-        idle: {
-          frames: [0],
-        },
-        rolling: {
-          frames: [0, 1, 2, 3],
-          frameRate: 2,
-        },
-      },
-    });
-  }
-
-  return spriteSheet.animations;
-};
-
-export class Roller extends Sprite.class {
-  constructor() {
-    super({
-      animations: getAnimations(),
-    });
-  }
-
+export class Roller extends GameObject {
   move(): void {
     this.dx = -SPEED + Math.random() * 0.01;
-    this.playAnimation('rolling');
+  }
+
+  render(): void {
+    const context = getContext();
+    context.save();
+    context.translate(this.x, this.y);
+    this.renderImage(context, imageAssets['roller']);
+    context.restore();
   }
 
   stop(): void {
     // When near the edge, go all the way
     if (this.x > 64) {
       this.dx = 0;
-      this.playAnimation('idle');
     }
   }
 }

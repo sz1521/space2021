@@ -47,10 +47,6 @@ export class Cone extends GameObject {
     context.restore();
   }
 
-  renderImage(context: CanvasRenderingContext2D, image: any): void {
-    context.drawImage(image, 0, 0);
-  }
-
   grab(): void {
     if (this.state !== 'grabbed') {
       this.state = 'grabbed';

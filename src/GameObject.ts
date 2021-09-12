@@ -25,15 +25,21 @@
 export class GameObject {
   x = 0;
   y = 0;
+  dx = 0;
   width = 32;
   height = 32;
   ttl: number = Number.POSITIVE_INFINITY;
 
   update(): void {
+    this.x += this.dx;
     this.ttl -= 1;
   }
 
   isAlive(): boolean {
     return this.ttl > 0;
+  }
+
+  protected renderImage(context: CanvasRenderingContext2D, image: any): void {
+    context.drawImage(image, 0, 0);
   }
 }
