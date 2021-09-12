@@ -221,10 +221,11 @@ export class Level {
     if (this.isInside(x, y)) {
       const position = this.toGridPosition(x, y);
       const tile = this.getTile(position);
-      if (tile === 1) {
+      console.info(tile);
+      if (tile === 0 || tile === 1) {
         this.highlight = {
           position,
-          radius: 0,
+          radius: getRadius(selectedSpecies),
           available: false,
         };
       } else {
@@ -485,15 +486,33 @@ export class Level {
       return;
     }
 
+    var obj = this.findObject(this.highlight.position, anyObject);
+
+    context.globalAlpha = 0.5;
+
     const r = this.highlight.radius;
     const x = this.highlight.position.xSquare * TILE_WIDTH - r * TILE_WIDTH;
     const y = this.highlight.position.ySquare * TILE_HEIGHT - r * TILE_HEIGHT;
+
     const width = TILE_WIDTH + 2 * r * TILE_WIDTH;
     const height = TILE_HEIGHT + 2 * r * TILE_HEIGHT;
 
+    const isFull = obj instanceof Cone || obj instanceof Roller || obj instanceof Plant;
+    const enoughGlucose = r === 0 ? this.glucoseLevel >= 4 : this.glucoseLevel >= 12;
+    const color = this.highlight.available && enoughGlucose && !isFull ? 'rgb(0, 255, 0)' : 'rgb(255, 0, 0)';
+
     context.save();
-    context.fillStyle = this.highlight.available ? 'rgb(0, 255, 0)' : 'rgb(255, 0, 0)';
-    context.globalAlpha = 0.5;
+
+    if (this.highlight.available && enoughGlucose && !isFull) {
+      context.strokeStyle = color;
+      context.strokeRect(x, y, width, height);
+    }
+
+    const centerX = r > 0 ? TILE_WIDTH : 0;
+    const centerY = r > 0 ? TILE_HEIGHT : 0;
+    context.fillStyle = color;
+    context.fillRect(x+centerX, y+centerY, TILE_WIDTH, TILE_HEIGHT);
+    context.globalAlpha = 0.2;
     context.fillRect(x, y, width, height);
     context.restore();
   }
