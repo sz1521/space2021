@@ -159,7 +159,7 @@ export class Level {
   private gameObjects: GameObject[] = [];
   private rollers: Array<Roller>;
 
-  private attackCount: number = 0;
+  private attackCount = 0;
   private attackStartTime: number = performance.now();
   private lastRollerCheckTime: number = performance.now();
 
@@ -168,8 +168,8 @@ export class Level {
 
   private highlight: Highlight | undefined;
 
-  glucoseLevel: number = 0;
-  score: number = 0;
+  glucoseLevel = 0;
+  score = 0;
 
   constructor() {
     this.tileEngine = TileEngine({
@@ -217,7 +217,7 @@ export class Level {
     }
   }
 
-  onMouseMove(x: number, y: number, selectedSpecies: Species) {
+  onMouseMove(x: number, y: number, selectedSpecies: Species): void {
     if (this.isInside(x, y)) {
       const position = this.toGridPosition(x, y);
       const tile = this.getTile(position);
@@ -391,12 +391,12 @@ export class Level {
 
     const pattern: Pattern = PATTERNS[Math.min(level, PATTERNS.maxLevel)];
     let bestAttack: SquareInfo[] = [];
-    let bestValue: number = 0;
+    let bestValue = 0;
 
     for (let i = 0; i < 10; i++) {
       const anchor = getRandomElement(freeTiles).pos;
-      let squares = this.getAttackSquares(pattern, anchor, freeTiles);
-      let value = this.evaluateAttackSquares(squares);
+      const squares = this.getAttackSquares(pattern, anchor, freeTiles);
+      const value = this.evaluateAttackSquares(squares);
 
       if (value > bestValue) {
         bestAttack = squares;
@@ -485,9 +485,7 @@ export class Level {
       return;
     }
 
-    var obj = this.findObject(this.highlight.position, anyObject);
-
-    context.globalAlpha = 0.5;
+    const obj = this.findObject(this.highlight.position, anyObject);
 
     const r = this.highlight.radius;
     const x = this.highlight.position.xSquare * TILE_WIDTH - r * TILE_WIDTH;
@@ -501,6 +499,8 @@ export class Level {
     const color = this.highlight.available && enoughGlucose && !isFull ? 'rgb(0, 255, 0)' : 'rgb(255, 0, 0)';
 
     context.save();
+
+    context.globalAlpha = 0.5;
 
     if (this.highlight.available && enoughGlucose && !isFull) {
       context.strokeStyle = color;
