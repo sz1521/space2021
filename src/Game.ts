@@ -26,7 +26,7 @@ import { GameLoop, getCanvas, getContext } from "kontra";
 import { isInside, Level, SquareBounds } from "./Level";
 import { getCost, Species } from "./Plant";
 
-const TOP_ROW_HEIGHT = 80;
+const TOP_ROW_HEIGHT = 120;
 
 interface Button {
   text: string;
@@ -106,6 +106,7 @@ export class Game {
     if (canvas.width > zoomedWidth) {
       translateToCenter = (canvas.width - zoomedWidth) / 2;
     }
+    if (zoom > 5) zoom = 5;
 
     this.zoomFactor = zoom;
     this.horizontalTranslate = translateToCenter;
@@ -192,10 +193,11 @@ export class Game {
   }
 
   private renderGameOver(context: CanvasRenderingContext2D) {
-    const x = 280;
-    const y = 300;
-    context.fillStyle = 'white';
+    context.fillStyle = 'darkgray';
+    context.strokeStyle = 'black';
+    context.lineWidth = 2;
     context.font = 'bold 60px Sans-serif';
-    context.fillText("GAME OVER", x, y);
+    context.fillText("GAME OVER", context.canvas.width / 2 - 180, context.canvas.width / 3);
+    context.strokeText("GAME OVER", context.canvas.width / 2 - 180, context.canvas.width / 3);
   }
 }
