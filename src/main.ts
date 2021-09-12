@@ -26,10 +26,23 @@ import { init, load, GameLoop } from "kontra";
 import { Game } from "./Game";
 import { playSong, renderSong } from "./sfx";
 
-const { context } = init();
+const { canvas, context } = init();
 (context as any).webkitImageSmoothingEnabled = false;
 (context as any).mozImageSmoothingEnabled = false;
 context.imageSmoothingEnabled = false;
+
+let game: Game;
+
+const resize = (): void => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  if (game) {
+    game.fitToScreen(canvas);
+  }
+};
+
+window.addEventListener("resize", resize, false);
+resize();
 
 const createTextScreenLoop = (text: string): GameLoop => {
   return GameLoop({
@@ -59,12 +72,14 @@ let startScreenLoop: GameLoop | null = createTextScreenLoop("LOADING...");
 startScreenLoop.start();
 
 load('tiles.png', 'blue_flower.png', 'vine.png', 'cone.png', 'roller.png').then(() => {
-  const game = new Game();
+  game = new Game();
   const tune = renderSong();
 
   startScreenLoop?.stop();
   startScreenLoop = createTextScreenLoop("CLICK TO START");
   startScreenLoop.start();
+
+  resize();
 
   addEventListener('click', (e) => {
     if (startScreenLoop) {

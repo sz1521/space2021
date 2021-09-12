@@ -198,6 +198,14 @@ export class Level {
     this.addObject(new Plant('blue_flower'), { xSquare: 7, ySquare: 5 });
   }
 
+  getWidth(): number {
+    return this.tileEngine.mapwidth;
+  }
+
+  getHeight(): number {
+    return this.tileEngine.mapheight;
+  }
+
   isGameOver(): boolean {
     return this.state === State.GameOver;
   }

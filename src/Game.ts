@@ -22,14 +22,11 @@
  * SOFTWARE.
  */
 
-import { GameLoop, getContext } from "kontra";
+import { GameLoop, getCanvas, getContext } from "kontra";
 import { isInside, Level, SquareBounds } from "./Level";
 import { getCost, Species } from "./Plant";
 
-const LEVEL_X = 0;
-const LEVEL_Y = 80;
-
-const ZOOM_FACTOR = 2;
+const TOP_ROW_HEIGHT = 80;
 
 interface Button {
   text: string;
@@ -38,6 +35,9 @@ interface Button {
 }
 
 export class Game {
+  private zoomFactor: number = 2;
+  private horizontalTranslate = 0;
+
   private level: Level;
   private selectedSpecies: Species = 'blue_flower';
 
@@ -69,8 +69,8 @@ export class Game {
 
     addEventListener('mousemove', (e) => {
       this.level.onMouseMove(
-        (e.x - LEVEL_X) / ZOOM_FACTOR,
-        (e.y - LEVEL_Y) / ZOOM_FACTOR,
+        (e.x - this.horizontalTranslate) / this.zoomFactor,
+        (e.y - TOP_ROW_HEIGHT) / this.zoomFactor,
         this.selectedSpecies
       );
     });
@@ -85,9 +85,30 @@ export class Game {
     }
 
     this.level.insertPlant(
-      (e.x - LEVEL_X) / ZOOM_FACTOR,
-      (e.y - LEVEL_Y) / ZOOM_FACTOR,
+      (e.x - this.horizontalTranslate) / this.zoomFactor,
+      (e.y - TOP_ROW_HEIGHT) / this.zoomFactor,
       this.selectedSpecies);
+  }
+
+  fitToScreen(canvas: HTMLCanvasElement): void {
+    const levelWidth = this.level.getWidth();
+    const levelHeight = this.level.getHeight();
+
+    let zoom = canvas.width / levelWidth;
+    const heightWithZoom = levelHeight * zoom + TOP_ROW_HEIGHT;
+
+    if (heightWithZoom > canvas.height) {
+      zoom = (canvas.height - TOP_ROW_HEIGHT) / levelHeight;
+    }
+
+    const zoomedWidth = levelWidth * zoom;
+    let translateToCenter = 0;
+    if (canvas.width > zoomedWidth) {
+      translateToCenter = (canvas.width - zoomedWidth) / 2;
+    }
+
+    this.zoomFactor = zoom;
+    this.horizontalTranslate = translateToCenter;
   }
 
   start() {
@@ -100,12 +121,9 @@ export class Game {
 
       render: (): void => {
         context.save();
-        context.translate(LEVEL_X, LEVEL_Y);
-
-        context.save();
-        context.scale(ZOOM_FACTOR, ZOOM_FACTOR);
+        context.translate(this.horizontalTranslate, TOP_ROW_HEIGHT);
+        context.scale(this.zoomFactor, this.zoomFactor);
         this.level.render();
-        context.restore();
 
         context.restore();
 
