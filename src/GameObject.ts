@@ -22,39 +22,18 @@
  * SOFTWARE.
  */
 
-import { getContext, imageAssets } from "kontra";
-import { GameObject } from "./GameObject";
-import { easeOutBounce } from "./easings";
+export class GameObject {
+  x = 0;
+  y = 0;
+  width = 32;
+  height = 32;
+  ttl: number = Number.POSITIVE_INFINITY;
 
-const FRAMES_PER_SECOND = 60;
-
-export type ConeState = 'idle' | 'grabbed';
-
-export class Cone extends GameObject {
-  state: ConeState = 'idle';
-  dropTime: number = performance.now() + Math.random() * 200;
-
-  render(): void {
-    const now = performance.now();
-    const timeSinceDrop = now - this.dropTime;
-    const y = (timeSinceDrop < 1000) ? -10 + easeOutBounce(timeSinceDrop / 1000) * 10 : 0;
-
-    const context = getContext();
-    context.save();
-    context.translate(this.x, this.y);
-    context.translate(0, y);
-    this.renderImage(context, imageAssets['cone']);
-    context.restore();
+  update(): void {
+    this.ttl -= 1;
   }
 
-  renderImage(context: CanvasRenderingContext2D, image: any): void {
-    context.drawImage(image, 0, 0);
-  }
-
-  grab(): void {
-    if (this.state !== 'grabbed') {
-      this.state = 'grabbed';
-      this.ttl = 1 * FRAMES_PER_SECOND;
-    }
+  isAlive(): boolean {
+    return this.ttl > 0;
   }
 }
