@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { GameLoop, getCanvas, getContext } from "kontra";
+import { GameLoop, getContext } from "kontra";
 import { isInside, Level, SquareBounds } from "./Level";
 import { getCost, Species } from "./Plant";
 
@@ -112,27 +112,27 @@ export class Game {
     this.horizontalTranslate = translateToCenter;
   }
 
+  context = getContext();
+
+  loop = GameLoop({
+    update: (): void => {
+      this.level.update();
+    },
+
+    render: (): void => {
+      this.context.save();
+      this.context.translate(this.horizontalTranslate, TOP_ROW_HEIGHT);
+      this.context.scale(this.zoomFactor, this.zoomFactor);
+      this.level.render();
+
+      this.context.restore();
+
+      this.renderUi(this.context);
+    },
+  });
+
   start() {
-    const context = getContext();
-
-    const loop = GameLoop({
-      update: (): void => {
-        this.level.update();
-      },
-
-      render: (): void => {
-        context.save();
-        context.translate(this.horizontalTranslate, TOP_ROW_HEIGHT);
-        context.scale(this.zoomFactor, this.zoomFactor);
-        this.level.render();
-
-        context.restore();
-
-        this.renderUi(context);
-      },
-    });
-
-    loop.start()
+    this.loop.start()
   }
 
   private renderUi(context: CanvasRenderingContext2D) {
@@ -147,6 +147,7 @@ export class Game {
 
     if (this.level.isGameOver()) {
       this.renderGameOver(context);
+      
     }
 
     context.restore();
@@ -193,11 +194,23 @@ export class Game {
   }
 
   private renderGameOver(context: CanvasRenderingContext2D) {
+    this.loop.stop();
+    const widthMiddle = context.canvas.width / 2;
+    const heightMiddle = context.canvas.height / 3;
+
     context.fillStyle = 'darkgray';
     context.strokeStyle = 'black';
     context.lineWidth = 2;
     context.font = 'bold 60px Sans-serif';
-    context.fillText("GAME OVER", context.canvas.width / 2 - 180, context.canvas.width / 3);
-    context.strokeText("GAME OVER", context.canvas.width / 2 - 180, context.canvas.width / 3);
+    context.fillText("GAME OVER", widthMiddle - 180, heightMiddle);
+    context.strokeText("GAME OVER", widthMiddle - 180, heightMiddle);
+
+    context.fillStyle = 'white';
+    context.font = 'bold 30px Sans-serif';
+    context.fillText("CLICK TO TRY AGAIN", widthMiddle - 150, heightMiddle + 50);
+
+    addEventListener('click', (e) => {
+      location.reload();
+    });
   }
 }

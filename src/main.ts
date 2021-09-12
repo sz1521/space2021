@@ -66,7 +66,7 @@ const createTextScreenLoop = (text: string): GameLoop => {
       context.strokeText("vs parking", widthMiddle - 170, heightMiddle);
       context.fillStyle = 'white';
       context.font = 'bold 30px Sans-serif';
-      context.fillText(text, widthMiddle - 150, heightMiddle + 40);
+      context.fillText(text, widthMiddle - 150, heightMiddle + 50);
       context.restore();
     },
   })
