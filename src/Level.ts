@@ -221,7 +221,6 @@ export class Level {
     if (this.isInside(x, y)) {
       const position = this.toGridPosition(x, y);
       const tile = this.getTile(position);
-      console.info(tile);
       if (tile === 0 || tile === 1) {
         this.highlight = {
           position,
@@ -498,7 +497,7 @@ export class Level {
     const height = TILE_HEIGHT + 2 * r * TILE_HEIGHT;
 
     const isFull = obj instanceof Cone || obj instanceof Roller || obj instanceof Plant;
-    const enoughGlucose = r === 0 ? this.glucoseLevel >= 4 : this.glucoseLevel >= 12;
+    const enoughGlucose = r === 0 ? this.glucoseLevel >= getCost("blue_flower") : this.glucoseLevel >= getCost("vine") ;
     const color = this.highlight.available && enoughGlucose && !isFull ? 'rgb(0, 255, 0)' : 'rgb(255, 0, 0)';
 
     context.save();

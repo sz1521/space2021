@@ -135,15 +135,20 @@ export class Game {
 
   private renderButton(context: CanvasRenderingContext2D, button: Button) {
     const bounds = button.bounds;
-    context.fillStyle = button.species === this.selectedSpecies ? 'green' : 'rgb(50, 50, 50)';
+    const cost = getCost(button.species);
+
+    if (cost > this.level.glucoseLevel) {
+      context.fillStyle = button.species === this.selectedSpecies ? 'red' : 'rgb(80, 0, 0)';
+    } else {
+      context.fillStyle = button.species === this.selectedSpecies ? 'green' : 'rgb(0, 80, 0)';
+    }
     context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
     context.fillStyle = 'white';
     context.font = '1rem Sans-serif';
     context.fillText(button.text, bounds.x + 17, bounds.y + 30);
 
-    const cost = getCost(button.species);
-    context.fillStyle = (cost <= this.level.glucoseLevel) ? 'rgb(0, 255, 0)' : 'rgb(0, 100, 0)';
+    context.fillStyle = 'white';
     context.font = 'bold 1rem Sans-serif';
     context.fillText(
       cost.toString(),
