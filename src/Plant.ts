@@ -30,6 +30,7 @@ export type Species = 'blue_flower' | 'vine';
 export interface PlantInfo {
   cost: number;
   glucosis: number;
+  radius: number;
   interval?: number;
 }
 
@@ -37,16 +38,22 @@ const infos: Record<Species, PlantInfo> = {
   'blue_flower': {
     cost: 4,
     glucosis: 1,
+    radius: 0,
     interval: 6000,
   },
   'vine': {
     cost: 12,
+    radius: 1,
     glucosis: 0,
   }
 };
 
 export const getCost = (species: Species) => {
   return infos[species].cost;
+}
+
+export const getRadius = (species: Species) => {
+  return infos[species].radius;
 }
 
 type State =
@@ -121,6 +128,10 @@ export class Plant extends Sprite.class {
   }
 
   private renderGlucose(context: CanvasRenderingContext2D): void {
+    if (this.lastPhotosynthesisTime === 0) {
+      return;
+    }
+
     const now = performance.now();
     const timeSincePhotoSynthesis = now - this.lastPhotosynthesisTime;
     if (timeSincePhotoSynthesis < 1000) {
@@ -135,6 +146,10 @@ export class Plant extends Sprite.class {
   }
 
   getGlucose(): number {
+    if (!this.isAlive()) {
+      return 0;
+    }
+
     const interval = infos[this.species].interval;
     if (interval == null) {
       return 0;
@@ -150,7 +165,7 @@ export class Plant extends Sprite.class {
   }
 
   canGrab(): boolean {
-    return this.species === 'vine' && this.state.type !== 'grabbing';
+    return this.isAlive() && this.species === 'vine' && this.state.type !== 'grabbing';
   }
 
   startGrabbing(): void {

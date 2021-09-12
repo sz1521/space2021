@@ -66,6 +66,14 @@ export class Game {
 
   constructor() {
     this.level = new Level();
+
+    addEventListener('mousemove', (e) => {
+      this.level.onMouseMove(
+        (e.x - LEVEL_X) / ZOOM_FACTOR,
+        (e.y - LEVEL_Y) / ZOOM_FACTOR,
+        this.selectedSpecies
+      );
+    });
   }
 
   onClick(e: MouseEvent): void {

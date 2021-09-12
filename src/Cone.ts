@@ -22,7 +22,8 @@
  * SOFTWARE.
  */
 
-import { Animation, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { Animation, getContext, imageAssets, Sprite, SpriteSheet } from "kontra";
+import { easeOutBounce } from "./easings";
 
 const FRAMES_PER_SECOND = 60;
 
@@ -54,11 +55,24 @@ export type ConeState = 'idle' | 'grabbed';
 
 export class Cone extends Sprite.class {
   state: ConeState = 'idle';
+  dropTime: number = performance.now() + Math.random() * 200;
 
   constructor() {
     super({
       animations: getAnimations(),
     });
+  }
+
+  draw(): void {
+    const now = performance.now();
+    const timeSinceDrop = now - this.dropTime;
+    const y = (timeSinceDrop < 1000) ? -10 + easeOutBounce(timeSinceDrop / 1000) * 10 : 0;
+
+    const context = getContext();
+    context.save();
+    context.translate(0, y);
+    super.draw();
+    context.restore();
   }
 
   grab(): void {
