@@ -94,14 +94,14 @@ export class Game {
     const levelHeight = this.level.getHeight();
     const gameHeight = LEVEL_Y + levelHeight;
 
-    const canvasAspectRatio = canvas.width / canvas.height;
-    const gameAspectRatio = gameWidth / gameHeight;
+    let zoom = canvas.width / gameWidth;
+    const heightWithZoom = levelHeight * zoom + LEVEL_Y;
 
-    if (gameAspectRatio > canvasAspectRatio) {
-      this.zoomFactor = canvas.width / gameWidth;
-    } else {
-      this.zoomFactor = (canvas.height - LEVEL_Y) / levelHeight;
+    if (heightWithZoom > canvas.height) {
+      zoom = (canvas.height - LEVEL_Y) / levelHeight;
     }
+
+    this.zoomFactor = zoom;
   }
 
   start() {
