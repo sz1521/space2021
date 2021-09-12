@@ -532,8 +532,17 @@ export class Level {
 
   render(): void {
     const context = getContext();
+
     // Sort objects for perspective effect, back-to-front.
-    this.gameObjects.sort((a, b) => a.y - b.y);
+    this.gameObjects.sort((a: GameObject, b: GameObject) => {
+      const diff = a.y - b.y;
+      if (diff === 0) {
+        // Rollers always in front.
+        return a instanceof Roller ? 1 : -1;
+      } else {
+        return diff;
+      }
+    });
 
     this.tileEngine.render();
 
