@@ -26,6 +26,7 @@ import { getCost, getRadius, Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
 import { collides, GameObject, getContext, imageAssets, TileEngine } from "kontra";
 import { Roller } from "./Roller";
+import { DESTROYCONE, DESTROYPLANT, PLANTFLOWER, PLANTVINE, playEffect } from "./fx";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -213,6 +214,11 @@ export class Level {
       if (!isPaved && this.isFreeOf(position, anyObject)) {
         this.addObject(new Plant(species), position);
         this.glucoseLevel -= cost;
+        if (species == 'blue_flower') {
+          playEffect(PLANTFLOWER);
+        } else {
+          playEffect(PLANTVINE);
+        }
       }
     }
   }
@@ -278,6 +284,7 @@ export class Level {
           if (cone) {
             o.startGrabbing();
             cone.grab();
+            playEffect(DESTROYCONE);
             this.score += 1;
           }
         }
@@ -345,6 +352,7 @@ export class Level {
       const objectAtTile = this.findObject(pos, otherThanRoller);
       if (objectAtTile) {
         objectAtTile.ttl = 0;
+        playEffect(DESTROYPLANT);
       }
     }
   }
@@ -411,6 +419,8 @@ export class Level {
 
       this.insertCone(square.pos);
     }
+
+    playEffect(DESTROYPLANT);
   }
 
   private evaluateAttackSquares(squares: SquareInfo[]): number {
