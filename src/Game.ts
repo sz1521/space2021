@@ -29,8 +29,6 @@ import { getCost, Species } from "./Plant";
 const LEVEL_X = 0;
 const LEVEL_Y = 80;
 
-const ZOOM_FACTOR = 2;
-
 interface Button {
   text: string;
   species: Species;
@@ -38,6 +36,7 @@ interface Button {
 }
 
 export class Game {
+  private zoomFactor: number = 2;
   private level: Level;
   private selectedSpecies: Species = 'blue_flower';
 
@@ -69,8 +68,8 @@ export class Game {
 
     addEventListener('mousemove', (e) => {
       this.level.onMouseMove(
-        (e.x - LEVEL_X) / ZOOM_FACTOR,
-        (e.y - LEVEL_Y) / ZOOM_FACTOR,
+        (e.x - LEVEL_X) / this.zoomFactor,
+        (e.y - LEVEL_Y) / this.zoomFactor,
         this.selectedSpecies
       );
     });
@@ -85,9 +84,24 @@ export class Game {
     }
 
     this.level.insertPlant(
-      (e.x - LEVEL_X) / ZOOM_FACTOR,
-      (e.y - LEVEL_Y) / ZOOM_FACTOR,
+      (e.x - LEVEL_X) / this.zoomFactor,
+      (e.y - LEVEL_Y) / this.zoomFactor,
       this.selectedSpecies);
+  }
+
+  fitToScreen(canvas: HTMLCanvasElement): void {
+    const gameWidth = this.level.getWidth();
+    const levelHeight = this.level.getHeight();
+    const gameHeight = LEVEL_Y + levelHeight;
+
+    const canvasAspectRatio = canvas.width / canvas.height;
+    const gameAspectRatio = gameWidth / gameHeight;
+
+    if (gameAspectRatio > canvasAspectRatio) {
+      this.zoomFactor = canvas.width / gameWidth;
+    } else {
+      this.zoomFactor = (canvas.height - LEVEL_Y) / levelHeight;
+    }
   }
 
   start() {
@@ -103,7 +117,7 @@ export class Game {
         context.translate(LEVEL_X, LEVEL_Y);
 
         context.save();
-        context.scale(ZOOM_FACTOR, ZOOM_FACTOR);
+        context.scale(this.zoomFactor, this.zoomFactor);
         this.level.render();
         context.restore();
 
