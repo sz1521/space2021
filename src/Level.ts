@@ -109,38 +109,79 @@ const PATTERNS: { [level: number]: Pattern; maxLevel: number } = {
     { xRel: 0, yRel: 2 },
   ],
   5: [
+    { xRel: -4, yRel: 0 },
     { xRel: -2, yRel: 0 },
     { xRel: -2, yRel: 1 },
     { xRel: -1, yRel: 0 },
     { xRel: -1, yRel: 1 },
-    { xRel: 0, yRel: 0 },
-    { xRel: 0, yRel: 1 },
     { xRel: 1, yRel: 0 },
     { xRel: 1, yRel: 1 },
     { xRel: 2, yRel: 0 },
     { xRel: 2, yRel: 1 },
+    { xRel: 4, yRel: 0 },
+    { xRel: 4, yRel: 1 },
   ],
   6: [
-    { xRel: -3, yRel: 0 },
+    { xRel: -4, yRel: -2 },
+    { xRel: -2, yRel: -2 },
+    { xRel:  0, yRel: -2 },
+    { xRel:  2, yRel: -2 },
+    { xRel:  4, yRel: -2 },
+
+    { xRel: -3, yRel: -1 },
+    { xRel: -1, yRel: -1 },
+    { xRel:  1, yRel: -1 },
+    { xRel:  3, yRel: -1 },
+
+    { xRel: -4, yRel:  0 },
+    { xRel: -2, yRel:  0 },
+    { xRel:  0, yRel:  0 },
+    { xRel:  2, yRel:  0 },
+    { xRel:  4, yRel:  0 },
+
     { xRel: -3, yRel: 1 },
+    { xRel: -1, yRel: 1 },
+    { xRel:  1, yRel: 1 },
+    { xRel:  3, yRel: 1 },
+
+    { xRel: -4, yRel:  2 },
+    { xRel: -2, yRel:  2 },
+    { xRel:  0, yRel:  2 },
+    { xRel:  2, yRel:  2 },
+    { xRel:  4, yRel:  2 },
+  ],
+  7: [
+    { xRel: -3, yRel:  0 },
+    { xRel: -3, yRel:  1 },
+
     { xRel: -2, yRel: -1 },
-    { xRel: -2, yRel: 0 },
-    { xRel: -2, yRel: 1 },
-    { xRel: -2, yRel: 2 },
+    { xRel: -2, yRel:  0 },
+    { xRel: -2, yRel:  1 },
+    { xRel: -2, yRel:  2 },
+
     { xRel: -1, yRel: -2 },
     { xRel: -1, yRel: -1 },
-    { xRel: -1, yRel: 0 },
-    { xRel: -1, yRel: 1 },
-    { xRel: -1, yRel: 2 },
-    { xRel: -1, yRel: 3 },
-    { xRel: 0, yRel: 0 },
-    { xRel: 0, yRel: 1 },
-    { xRel: 1, yRel: 0 },
-    { xRel: 1, yRel: 1 },
-    { xRel: 2, yRel: 0 },
-    { xRel: 2, yRel: 1 },
+    // { xRel: -1, yRel:  0 },
+    { xRel: -1, yRel:  1 },
+    { xRel: -1, yRel:  2 },
+    { xRel: -1, yRel:  3 },
+
+    { xRel:  0, yRel: -2 },
+    { xRel:  0, yRel: -1 },
+    { xRel:  0, yRel:  0 },
+    // { xRel:  0, yRel:  1 },
+    { xRel:  0, yRel:  2 },
+    { xRel:  0, yRel:  3 },
+
+    { xRel: 1, yRel: -1 },
+    { xRel: 1, yRel:  0 },
+    { xRel: 1, yRel:  1 },
+    { xRel: 1, yRel:  2 },
+
+    { xRel: 2, yRel:  0 },
+    { xRel: 2, yRel:  1 },
   ],
-  maxLevel: 6,
+  maxLevel: 7,
 };
 
 interface SquareInfo {
@@ -169,7 +210,7 @@ export class Level {
 
   private highlight: Highlight | undefined;
 
-  glucoseLevel = 0;
+  glucoseLevel = 4;
   score = 0;
 
   constructor() {
@@ -371,20 +412,23 @@ export class Level {
     if (n <= 3) {
       return 1;
     }
-    if (n <= 6) {
+    if (n <= 5) {
       return 2;
     }
-    if (n < 8) {
+    if (n <= 8) {
       return 3;
     }
-    if (n < 10) {
+    if (n <= 11) {
       return 4;
     }
-    if (n < 15) {
+    if (n <= 14) {
       return 5;
     }
+    if (n <= 17) {
+      return 6;
+    }
 
-    return 6;
+    return 7;
   }
 
   private attack(): void {
