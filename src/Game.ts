@@ -163,11 +163,11 @@ export class Game {
     context.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
 
     context.fillStyle = 'white';
-    context.font = '1rem Sans-serif';
+    context.font = '14px Sans-serif';
     context.fillText(button.text, bounds.x + 17, bounds.y + 30);
 
     context.fillStyle = 'white';
-    context.font = 'bold 1rem Sans-serif';
+    context.font = 'bold 14px Sans-serif';
     context.fillText(
       cost.toString(),
       bounds.x + bounds.width - 25,
@@ -179,7 +179,7 @@ export class Game {
     const x = lastButton.x + lastButton.width + 50;
     const y = 35;
     context.fillStyle = 'rgb(0, 200, 0)';
-    context.font = '1rem Sans-serif';
+    context.font = '14px Sans-serif';
     context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
   }
 
@@ -187,7 +187,7 @@ export class Game {
     const x = 600;
     const y = 40;
     context.fillStyle = 'orange';
-    context.font = '30px Sans-serif';
+    context.font = '14px Sans-serif';
     context.fillText('Score: ' + this.level.score, x, y);
   }
 
