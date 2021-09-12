@@ -36,12 +36,19 @@ archive.on("error", function (err) {
 });
 archive.pipe(output);
 
-["./dist/index.html", "./dist/main.js", "./dist/favicon.ico"].forEach(
-  (file) => {
-    archive.append(fs.createReadStream(file), {
-      name: path.basename(file),
-    });
-  }
-);
+[
+  "./dist/index.html",
+  "./dist/main.js",
+  "./dist/favicon.ico",
+  "./dist/blue_flower.png",
+  "./dist/cone.png",
+  "./dist/roller.png",
+  "./dist/tiles.png",
+  "./dist/vine.png",
+].forEach((file) => {
+  archive.append(fs.createReadStream(file), {
+    name: path.basename(file),
+  });
+});
 
 archive.finalize();
