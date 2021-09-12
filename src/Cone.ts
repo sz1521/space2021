@@ -33,6 +33,7 @@ export type ConeState = 'idle' | 'grabbed';
 export class Cone extends GameObject {
   state: ConeState = 'idle';
   dropTime: number = performance.now() + Math.random() * 200;
+  grabTime: number | undefined;
 
   render(): void {
     const now = performance.now();
@@ -43,14 +44,20 @@ export class Cone extends GameObject {
     context.save();
     context.translate(this.x, this.y);
     context.translate(0, y);
-    this.renderImage(context, imageAssets['cone']);
+    let frame = 0;
+    if (this.grabTime) {
+      const timeSinceGrab = performance.now() - this.grabTime;
+      frame = Math.min(2, 1 + Math.floor(timeSinceGrab / 1000));
+    }
+    this.renderImageFrame(context, imageAssets['cone'], frame);
     context.restore();
   }
 
   grab(): void {
     if (this.state !== 'grabbed') {
       this.state = 'grabbed';
-      this.ttl = 1 * FRAMES_PER_SECOND;
+      this.ttl = 2 * FRAMES_PER_SECOND;
+      this.grabTime = performance.now();
     }
   }
 }

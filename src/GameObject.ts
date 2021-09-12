@@ -44,4 +44,8 @@ export abstract class GameObject {
   protected renderImage(context: CanvasRenderingContext2D, image: HTMLImageElement): void {
     context.drawImage(image, 0, 0);
   }
+
+  protected renderImageFrame(context: CanvasRenderingContext2D, image: HTMLImageElement, frame: number): void {
+    context.drawImage(image, frame * 32, 0, 32, 32, 0, 0, 32, 32);
+  }
 }
