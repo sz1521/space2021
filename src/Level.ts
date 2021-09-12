@@ -24,9 +24,10 @@
 
 import { getCost, getRadius, Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
-import { collides, GameObject, getContext, imageAssets, TileEngine } from "kontra";
+import { collides, getContext, imageAssets, TileEngine } from "kontra";
 import { Roller } from "./Roller";
 import { DESTROYCONE, DESTROYPLANT, PLANTFLOWER, PLANTVINE, playEffect } from "./fx";
+import { GameObject } from "./GameObject";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
@@ -329,8 +330,9 @@ export class Level {
         }
 
         if (o.canGrab()) {
-          const cone = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
-          if (cone) {
+          const grabbed = this.findAdjascentObject(o, o => o instanceof Cone && o.state !== 'grabbed');
+          if (grabbed) {
+            const cone = grabbed as Cone;
             o.startGrabbing();
             cone.grab();
             playEffect(DESTROYCONE);

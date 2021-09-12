@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-export class GameObject {
+export abstract class GameObject {
   x = 0;
   y = 0;
   dx = 0;
@@ -34,6 +34,8 @@ export class GameObject {
     this.x += this.dx;
     this.ttl -= 1;
   }
+
+  abstract render(): void;
 
   isAlive(): boolean {
     return this.ttl > 0;
