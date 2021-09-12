@@ -26,7 +26,7 @@ import { getCost, getRadius, Plant, Species } from "./Plant";
 import { Cone } from "./Cone";
 import { collides, GameObject, getContext, imageAssets, TileEngine } from "kontra";
 import { Roller } from "./Roller";
-import { DESTROYCONE, DESTROYPLANT, PLANTFLOWER, PLANTVINE, playEffect } from "./sfx";
+import { DESTROYCONE, DESTROYPLANT, PLANTFLOWER, PLANTVINE, playEffect } from "./fx";
 
 const map =
   [ 2,  2,  2,  2,  3,  2,  2,  3,  2,  3,  3,  3,  2,  3,
