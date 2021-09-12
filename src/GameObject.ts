@@ -39,7 +39,7 @@ export class GameObject {
     return this.ttl > 0;
   }
 
-  protected renderImage(context: CanvasRenderingContext2D, image: any): void {
+  protected renderImage(context: CanvasRenderingContext2D, image: HTMLImageElement): void {
     context.drawImage(image, 0, 0);
   }
 }
