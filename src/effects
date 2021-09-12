@@ -1,0 +1,7 @@
+// https://github.com/KilledByAPixel/ZzFX
+// https://killedbyapixel.github.io/ZzFX/
+
+export const DESTROYCONE = [,,33,.1,.02,.2,4,2.02,-36,5.9,,,.12,,,,,,.09];
+export const DESTROYPLAN = [2.47,,1626,,.01,0,1,2.21,-19,,,,.04,,,.3,.11,.68,.04,.09];
+export const PLANTFLOWER = [1.05,,1629,.03,.23,.01,1,2.79,23,6,,,.23,,-2.6,,,.25,.01];
+export const PLANTVINE = [2.01,,179,.14,.25,.01,1,1.48,,,,,,.3,,,.16,.11,.21,.1];
