@@ -36,7 +36,9 @@ export class Roller extends GameObject {
     const context = getContext();
     context.save();
     context.translate(this.x, this.y);
-    this.renderImage(context, imageAssets['roller']);
+    // framerate: 2 frames per second
+    const frame = Math.floor(performance.now() / 500) % 4;
+    this.renderImageFrame(context, imageAssets['roller'], frame);
     context.restore();
   }
 
