@@ -57,16 +57,16 @@ const createTextScreenLoop = (text: string): GameLoop => {
       context.lineWidth = 2;
       context.fillStyle = 'rgb(00,120,00)';
       context.font = 'bold 60px impact ';
-      context.fillText("GREEN SPACE", widthMiddle - 180, heightMiddle - 40);
+      context.fillText("GREEN SPACE", widthMiddle - 170, heightMiddle - 40);
       context.strokeStyle  = 'rgb(00,255,00)';
-      context.strokeText("GREEN SPACE", widthMiddle - 180, heightMiddle - 40);
+      context.strokeText("GREEN SPACE", widthMiddle - 170, heightMiddle - 40);
       context.fillStyle = 'rgb(10,10,10)';
-      context.fillText("vs parking", widthMiddle - 170, heightMiddle);
+      context.fillText("vs parking", widthMiddle - 160, heightMiddle);
       context.strokeStyle  = 'darkgrey';
-      context.strokeText("vs parking", widthMiddle - 170, heightMiddle);
+      context.strokeText("vs parking", widthMiddle - 160, heightMiddle);
       context.fillStyle = 'white';
       context.font = 'bold 30px Sans-serif';
-      context.fillText(text, widthMiddle - 150, heightMiddle + 50);
+      context.fillText(text, widthMiddle - 135, heightMiddle + 50);
       context.restore();
     },
   })
