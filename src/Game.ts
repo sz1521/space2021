@@ -77,6 +77,12 @@ export class Game {
   }
 
   onClick(e: MouseEvent): void {
+    if (this.level.isGameOver()) {
+      this.loop.stop();
+      location.reload();
+      return;
+    };
+
     for (const button of this.buttons) {
       if (isInside(e, button.bounds)) {
         this.selectedSpecies = button.species;
@@ -178,15 +184,16 @@ export class Game {
 
   private renderGlucoseLevel(context: CanvasRenderingContext2D) {
     const lastButton = this.buttons[this.buttons.length - 1].bounds;
-    const x = lastButton.x + lastButton.width + 50;
-    const y = 35;
+    const x = lastButton.x + lastButton.width + 20;
+    const y = 20;
     context.fillStyle = 'rgb(0, 200, 0)';
     context.font = '14px Sans-serif';
     context.fillText('Glucose: ' + this.level.glucoseLevel, x, y);
   }
 
   private renderScore(context: CanvasRenderingContext2D) {
-    const x = 600;
+    const lastButton = this.buttons[this.buttons.length - 1].bounds;
+    const x = lastButton.x + lastButton.width + 20;
     const y = 40;
     context.fillStyle = 'orange';
     context.font = '14px Sans-serif';
@@ -194,7 +201,6 @@ export class Game {
   }
 
   private renderGameOver(context: CanvasRenderingContext2D) {
-    this.loop.stop();
     const widthMiddle = context.canvas.width / 2;
     const heightMiddle = context.canvas.height / 3;
 
@@ -208,9 +214,5 @@ export class Game {
     context.fillStyle = 'white';
     context.font = 'bold 30px Sans-serif';
     context.fillText("CLICK TO TRY AGAIN", widthMiddle - 150, heightMiddle + 50);
-
-    addEventListener('click', (e) => {
-      location.reload();
-    });
   }
 }

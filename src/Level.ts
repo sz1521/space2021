@@ -274,6 +274,7 @@ export class Level {
   }
 
   onMouseMove(x: number, y: number, selectedSpecies: Species): void {
+    if (this.isGameOver()) return;
     if (this.isInside(x, y)) {
       const position = this.toGridPosition(x, y);
       const tile = this.getTile(position);
