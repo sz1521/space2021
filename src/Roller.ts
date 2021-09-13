@@ -28,24 +28,31 @@ import { GameObject } from "./GameObject";
 const SPEED = 0.1;
 
 export class Roller extends GameObject {
-  move(): void {
-    this.dx = -SPEED + Math.random() * 0.01;
-  }
+  private moveStartTime: number | undefined;
 
   render(): void {
     const context = getContext();
     context.save();
     context.translate(this.x, this.y);
-    // framerate: 2 frames per second
-    const frame = Math.floor(performance.now() / 500) % 4;
+    let frame = 0;
+    if (this.moveStartTime != null) {
+      // framerate: 2 frames per second
+      frame = Math.floor((performance.now() - this.moveStartTime) / 500) % 4;
+    }
     this.renderImageFrame(context, imageAssets['roller'], frame);
     context.restore();
+  }
+
+  move(): void {
+    this.dx = -SPEED + Math.random() * 0.01;
+    this.moveStartTime = performance.now();
   }
 
   stop(): void {
     // When near the edge, go all the way
     if (this.x > 64) {
       this.dx = 0;
+      this.moveStartTime = undefined;
     }
   }
 }
